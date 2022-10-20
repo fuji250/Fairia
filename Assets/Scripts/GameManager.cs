@@ -30,8 +30,6 @@ public class GameManager : MonoBehaviour
         if (PlayerManager.gameState == "playing")
         {
                     HidePanel();
-
-
         }
         else if (PlayerManager.gameState == "gameclear")
         {

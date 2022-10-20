@@ -122,7 +122,7 @@ public class PlayerManager : MonoBehaviour
         HideCollider();
 
         //プレイヤーを上に少し跳ね上げる演出
-        rbody.AddForce(new Vector2(0, 800), ForceMode2D.Impulse);
+        rbody.AddForce(new Vector2(0, 100), ForceMode2D.Impulse);
     }
     void GameStop()
     {
