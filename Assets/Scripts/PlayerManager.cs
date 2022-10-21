@@ -16,8 +16,8 @@ public class PlayerManager : MonoBehaviour
     public BoxCollider2D down;
 
 
-    bool goJump = false;//ジャンプ開始フラグ
-    bool onGround = false;//地面に立っているフラグ
+    private bool _goJump = false;//ジャンプ開始フラグ
+    private bool _onGround = false;//地面に立っているフラグ
 
     public static string gameState = "playing";//ゲームの状態
 
@@ -53,7 +53,7 @@ public class PlayerManager : MonoBehaviour
             transform.localScale = new Vector2(-1, 1);//左右反転させる
         }
         //キャラクターをジャンプさせる
-        if (Input.GetButtonDown("Jump") && onGround)
+        if (Input.GetButtonDown("Jump") && _onGround)
         {
             Jump();
         }
@@ -67,50 +67,52 @@ public class PlayerManager : MonoBehaviour
         }
 
         //地上判定 インスペクタ上でGhostUpも指定
-        onGround = Physics2D.Linecast(transform.position - (transform.up * 0.57f) + (transform.right * 0.5f), transform.position - (transform.up * 0.57f) - (transform.right * 0.5f), groundLayer);
+        var transform1 = transform;
+        var position = transform1.position;
+        _onGround = Physics2D.Linecast(position - (transform1.up * 0.57f) + (transform1.right * 0.5f), position - (transform1.up * 0.57f) - (transform1.right * 0.5f), groundLayer);
         
 
         //速度を更新する
         rbody.velocity = new Vector2(axisH * speed, rbody.velocity.y);
 
-        if (goJump)
+        if (_goJump)
         {
             Vector2 jumpPw = new Vector2(0, jump);//ジャンプさせるベクトルを作る
             rbody.velocity = new Vector2(0, 0);
             rbody.AddForce(jumpPw, ForceMode2D.Impulse);//瞬間的な力を加える
-            goJump = false;
+            _goJump = false;
         }
 
     }
 
     public void Jump()
     {
-        goJump = true;
+        _goJump = true;
     }
 
 
     //接触開始
     public void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "Goal")
+        switch (collision.gameObject.tag)
         {
-            //Goal();//ゴール！！
-            Debug.Log("ゴール");
-        }
-        else if (collision.gameObject.tag == "Dead")
-        {
-            GameOver();//ゲームオーバー！！
-            Debug.Log("ゲームオーバー");
-        }
-        else if (collision.gameObject.tag == "FinalGoal")
-        {
-            //FadeManager.fadeColor = Color.white;
-            //dia.SetActive(false);
-            //LastFade.Instance.LoadScene("LAST", 1.0f);
+            case "Goal":
+                //Goal();//ゴール！！
+                Debug.Log("ゴール");
+                break;
+            case "Dead":
+                GameOver();//ゲームオーバー！！
+                Debug.Log("ゲームオーバー");
+                break;
+            case "FinalGoal":
+                //FadeManager.fadeColor = Color.white;
+                //dia.SetActive(false);
+                //LastFade.Instance.LoadScene("LAST", 1.0f);
+                break;
         }
     }
 
-    public void GameOver()
+    private void GameOver()
     {
         gameState = "gameover";
         GameStop();//ゲーム停止
@@ -124,20 +126,20 @@ public class PlayerManager : MonoBehaviour
         //プレイヤーを上に少し跳ね上げる演出
         rbody.AddForce(new Vector2(0, 100), ForceMode2D.Impulse);
     }
-    void GameStop()
+    private void GameStop()
     {
         //速度を０にして強制停止
         rbody.velocity = new Vector2(0, 0);
     }
 
 
-    void HideCollider()
+    private void HideCollider()
     {
         body.enabled = false;
         up.enabled = false;
         down.enabled = false;
     }
-    public void ShowCollider()
+    private void ShowCollider()
     {
         body.enabled = true;
         up.enabled = true;

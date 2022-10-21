@@ -1706,7 +1706,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2031787679}
         m_TargetAssemblyTypeName: Recorder, Assembly-CSharp
-        m_MethodName: roop
+        m_MethodName: Roop
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
