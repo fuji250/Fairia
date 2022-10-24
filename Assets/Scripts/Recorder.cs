@@ -48,7 +48,7 @@ public class Recorder : MonoBehaviour
     private bool isPlayback = false;
     private int ghostFrameNum = 0;
 
-    private string previousGameState;
+    private int previousGameState;
 
     // Start is called before the first frame update
     void Start()
@@ -62,10 +62,10 @@ public class Recorder : MonoBehaviour
     void Update()
     {
         //‹L˜^
-        if (isRecord && PlayerManager.gameState == "playing")
+        if (isRecord && PlayerManager.gameState == (int)PlayerManager.State.playing)
         {
         }
-        else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == "gameover")
+        else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.gameover)
         {
             Invoke(nameof(Retry), 0.3f);
         }
@@ -188,7 +188,7 @@ public class Recorder : MonoBehaviour
             ghosts[i].transform.position = new Vector2(xpos, ypos);
         }
 
-        PlayerManager.gameState = "playing";
+        PlayerManager.gameState = (int)PlayerManager.State.playing;
 
         ghostFrameNum = 0;
         StopRecord();

@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
 
 public class PlayerManager : MonoBehaviour
 {
-    private Recorder recorder;
+    private Recorder recorder = default;
 
     public Rigidbody2D rbody; //Rigidbody2Dの変数
     public float axisH = 0.0f; //入力
@@ -21,30 +23,40 @@ public class PlayerManager : MonoBehaviour
     private bool goJump = false; //ジャンプ開始フラグ
     private bool onGround = false; //地面に立っているフラグ
 
-    public static string gameState = "playing"; //ゲームの状態
+    public static int gameState = default; //ゲームの状態
+
+    public string nextScene = default;
 
 
     /// ----------------------------------------------------------------------
     private bool rightMove;
     private bool leftMove;
     /// ----------------------------------------------------------------------
+
+    public enum State
+    {
+        playing,
+        gameclear,
+        gameover
+    }
     
     // Start is called before the first frame update
     void Start()
     {
-        recorder = GameObject.Find("Recorder").GetComponent<Recorder>();
-
-
-
+        if (GameObject.Find("Recorder") != null)
+        {
+            recorder = GameObject.Find("Recorder").GetComponent<Recorder>();
+        }
+        
         //Rigidbody2Dを取ってくる
         rbody = this.GetComponent<Rigidbody2D>();
-        gameState = "playing"; //ゲーム中にする
+        gameState = (int)State.playing; //ゲーム中にする
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (gameState != "playing")
+        if (gameState != (int)State.playing)
         {
             return;
         }
@@ -85,7 +97,7 @@ public class PlayerManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (gameState != "playing")
+        if (gameState != (int)State.playing)
         {
             return;
         }
@@ -96,9 +108,12 @@ public class PlayerManager : MonoBehaviour
         onGround = Physics2D.Linecast(position - (transform1.up * 0.57f) + (transform1.right * 0.5f),
             position - (transform1.up * 0.57f) - (transform1.right * 0.5f), groundLayer);
 
-        //Recorderに入力記録を送る
-        recorder.RecordMove((int)axisH);
-        recorder.RecordJump(goJump);
+        if (recorder != default)
+        {
+            //Recorderに入力記録を送る
+            recorder.RecordMove((int)axisH);
+            recorder.RecordJump(goJump);
+        }
         
         Jump();
 
@@ -158,10 +173,8 @@ public class PlayerManager : MonoBehaviour
                 rbody.AddForce(jumpPw, ForceMode2D.Impulse); //瞬間的な力を加える
             }
         }
-
         goJump = false;
     }
-
 
     //接触開始
     public void OnTriggerEnter2D(Collider2D collision)
@@ -169,7 +182,7 @@ public class PlayerManager : MonoBehaviour
         switch (collision.gameObject.tag)
         {
             case "Goal":
-                //Goal();//ゴール！！
+                Goal();//ゴール！！
                 Debug.Log("ゴール");
                 break;
             case "Dead":
@@ -184,9 +197,16 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    private void Goal()
+    {
+        gameState = (int)State.gameclear;
+        //SceneManager.LoadScene(nextScene);
+    }
+    
+
     private void GameOver()
     {
-        gameState = "gameover";
+        gameState = (int)State.gameover;
         GameStop(); //ゲーム停止
         // =======================================
         // ゲームオーバー演出
@@ -204,7 +224,6 @@ public class PlayerManager : MonoBehaviour
         //速度を０にして強制停止
         rbody.velocity = new Vector2(0, 0);
     }
-
 
     private void HideCollider()
     {

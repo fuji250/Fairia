@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     public Volume volume;
     private ColorAdjustments colorAdjustments;
     
-    private string previousGameState;
+    private int previousGameState;
     private float fadeSpeed = 40f;
     private bool isFadeIn;
     private bool isFadeOut;
@@ -39,15 +39,15 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (PlayerManager.gameState == "playing")
+        if (PlayerManager.gameState == (int)PlayerManager.State.playing)
         {
                     HidePanel();
         }
-        else if (PlayerManager.gameState == "gameclear")
+        else if (PlayerManager.gameState == (int)PlayerManager.State.gameclear)
         {
 
         }
-        else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == "gameover")
+        else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.gameover)
         {
             nPanel.SetActive(false);
             rPanel.SetActive(true);
