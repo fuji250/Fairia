@@ -4,9 +4,18 @@ using UnityEngine;
 
 public class Recorder : MonoBehaviour 
 {
+    [SerializeField]
+    private GameObject player;
     //　操作キャラクター
     [SerializeField]
     private PlayerManager playerManager;
+    
+
+    private float speed;
+    private float jump;
+
+    private Recorder recorder;
+        
     //　現在記憶しているかどうか
     private bool isRecord = false;
     //　記録間隔
@@ -35,18 +44,18 @@ public class Recorder : MonoBehaviour
     public float xpos = 0.0f;
     public float ypos = 0.0f;
 
-    //　ゴーストデータを取り始めた時間、または前のデータ
-    private float startTime;
-
     //ゴースト再生のフラグ
     private bool isPlayback = false;
     private int ghostFrameNum = 0;
 
+    private string previousGameState;
 
     // Start is called before the first frame update
     void Start()
     {
         StartRecord();
+        speed = playerManager.speed;
+        jump = playerManager.jump;
     }
 
     // Update is called once per frame
@@ -55,12 +64,13 @@ public class Recorder : MonoBehaviour
         //記録
         if (isRecord && PlayerManager.gameState == "playing")
         {
-            Rec();
         }
-        else if (PlayerManager.gameState == "gameover")
+        else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == "gameover")
         {
-            //StopRecord();
+            Invoke(nameof(Retry), 0.3f);
         }
+
+        previousGameState = PlayerManager.gameState;
     }
 
     private void FixedUpdate()
@@ -71,32 +81,25 @@ public class Recorder : MonoBehaviour
             for (int i = 0; i < ghosts.Count; i++)
             {
                 PlayBack(i);
-                //StartCoroutine(PlayBackJump(i));
             }
             ghostFrameNum++;
         }
-
     }
 
-    //Updateで繰り返す
-    private void Rec()
+    //PlayerManagerで呼びだし
+    public  void RecordMove(int axisH)
     {
-        var moveHorizontal = Input.GetAxisRaw("Horizontal");
-
-        elapsedTime += Time.deltaTime;
-
-        if (elapsedTime >= recordDuration)
-        {
-            if (Input.GetAxisRaw("Horizontal") == 1) currentRight.Add(true);
-            else currentRight.Add(false);
-
-            if (Input.GetAxisRaw("Horizontal") == -1) currentLeft.Add(true);
-            else currentLeft.Add(false);
-
-            currentJump.Add(Input.GetButtonDown("Jump"));
-
-            elapsedTime = 0f;
-        }
+        if (axisH == 1) currentRight.Add(true);
+        else currentRight.Add(false);
+        
+        if (axisH == -1) currentLeft.Add(true);
+        else currentLeft.Add(false);
+    }
+    //PlayerManagerで呼びだし
+    public void RecordJump(bool onJump)
+    {
+        if (onJump)currentJump.Add(true);
+        else currentJump.Add(false);
     }
 
     //　キャラクターデータの保存
@@ -104,8 +107,6 @@ public class Recorder : MonoBehaviour
     {
         isRecord = true;
         elapsedTime = 0f;
-        startTime = Time.realtimeSinceStartup;
-        Debug.Log("StartRecord");
     }
 
     //　キャラクターデータの保存の停止
@@ -131,20 +132,14 @@ public class Recorder : MonoBehaviour
     {
         if (rightLists == null)
         {
-            Debug.Log("ゴーストデータがありません");
         }
         else
         {
-            //_isPlayBack = true;
-
             //ゴースト生成
             ghosts.Add(Instantiate(ghostPref, new Vector2(xpos, ypos), Quaternion.identity));
             rbodys.Add(ghosts[ghosts.Count - 1].GetComponent<Rigidbody2D>());
 
             isPlayback = true;
-
-            
-            //StartCoroutine(PlayBackJump());
         }
     }
 
@@ -153,23 +148,20 @@ public class Recorder : MonoBehaviour
     {
         if (ghostFrameNum < rightLists[ghostNum].Count)
         {
-            if (rightLists[ghostNum][ghostFrameNum] == true)
+            //右のみ押されていた場合、右移動
+            if (rightLists[ghostNum][ghostFrameNum] == true && leftLists[ghostNum][ghostFrameNum] == false)
             {
-                rbodys[ghostNum].velocity = new Vector2(playerManager.speed * 1, rbodys[ghostNum].velocity.y);
+                rbodys[ghostNum].velocity = new Vector2(speed * 1, rbodys[ghostNum].velocity.y);
                 ghosts[ghostNum].transform.localScale = new Vector2(1, 1);
             }
-
-            if (leftLists[ghostNum][ghostFrameNum] == true)
+            else if (leftLists[ghostNum][ghostFrameNum] == true)
             {
-                rbodys[ghostNum].velocity = new Vector2(playerManager.speed * -1, rbodys[ghostNum].velocity.y);
+                rbodys[ghostNum].velocity = new Vector2(speed * -1, rbodys[ghostNum].velocity.y);
                 ghosts[ghostNum].transform.localScale = new Vector2(-1, 1);
-            }
-
-            if (rightLists[ghostNum][ghostFrameNum] == false && leftLists[ghostNum][ghostFrameNum] == false)
+            }else
             {
                 rbodys[ghostNum].velocity = new Vector2(0, rbodys[ghostNum].velocity.y);
             }
-
             
             if (jumpLists[ghostNum][ghostFrameNum] == true)
             {
@@ -178,10 +170,8 @@ public class Recorder : MonoBehaviour
                 
                 if (onGround)
                 {
-                    Vector2 jumpPw = new Vector2(0, playerManager.jump);
+                    Vector2 jumpPw = new Vector2(0, jump);
                     rbodys[ghostNum].AddForce(jumpPw, ForceMode2D.Impulse);
-
-                    Debug.Log("ジャンプ中!!!!!");
                 }
             }
         }
@@ -189,10 +179,10 @@ public class Recorder : MonoBehaviour
     
     //RESTARTButtonで呼び出し
     //一度死んでから再スタートの処理
-    public void Roop()
+    public void Retry()
     {
         //キャラクタをスタート地点に戻す
-        GameObject.Find("Player").transform.position = new Vector2(xpos, ypos);
+        player.transform.position = new Vector2(xpos, ypos);
         for (int i = 0; i < ghosts.Count; i++)
         {
             ghosts[i].transform.position = new Vector2(xpos, ypos);
