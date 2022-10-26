@@ -8,22 +8,22 @@ public class PlayerManager : MonoBehaviour
 {
     private Recorder recorder = default;
 
-    public Rigidbody2D rbody; //Rigidbody2D‚Ì•Ï”
-    public float axisH = 0.0f; //“ü—Í
-    public float speed = 5.0f; //ˆÚ“®‘¬“x
+    private Rigidbody2D rbody; //Rigidbody2Dï¿½Ì•Ïï¿½
+    public float axisH = 0.0f; //ï¿½ï¿½ï¿½ï¿½
+    public float speed = 5.0f; //ï¿½Ú“ï¿½ï¿½ï¿½ï¿½x
 
-    public float jump = 9.0f; //ƒWƒƒƒ“ƒv—Í
-    public LayerMask groundLayer; //’…’n‚Å‚«‚éƒŒƒCƒ„[
+    public float jump = 9.0f; //ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½
+    public LayerMask groundLayer; //ï¿½ï¿½ï¿½nï¿½Å‚ï¿½ï¿½éƒŒï¿½Cï¿½ï¿½ï¿½[
 
     public BoxCollider2D body;
     public BoxCollider2D up;
     public BoxCollider2D down;
 
 
-    private bool goJump = false; //ƒWƒƒƒ“ƒvŠJnƒtƒ‰ƒO
-    private bool onGround = false; //’n–Ê‚É—§‚Á‚Ä‚¢‚éƒtƒ‰ƒO
+    private bool goJump = false; //ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½vï¿½Jï¿½nï¿½tï¿½ï¿½ï¿½O
+    private bool onGround = false; //ï¿½nï¿½Ê‚É—ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½O
 
-    public static int gameState = default; //ƒQ[ƒ€‚Ìó‘Ô
+    public static int gameState = default; //ï¿½Qï¿½[ï¿½ï¿½ï¿½Ìï¿½ï¿½
 
     public string nextScene = default;
 
@@ -48,9 +48,9 @@ public class PlayerManager : MonoBehaviour
             recorder = GameObject.Find("Recorder").GetComponent<Recorder>();
         }
         
-        //Rigidbody2D‚ğæ‚Á‚Ä‚­‚é
+        //Rigidbody2Dï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
         rbody = this.GetComponent<Rigidbody2D>();
-        gameState = (int)State.playing; //ƒQ[ƒ€’†‚É‚·‚é
+        gameState = (int)State.playing; //ï¿½Qï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½
     }
 
     // Update is called once per frame
@@ -61,15 +61,15 @@ public class PlayerManager : MonoBehaviour
             return;
         }
 
-        //…•½•ûŒü‚Ì“ü—Í‚ğƒ`ƒFƒbƒN‚·‚é
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì“ï¿½ï¿½Í‚ï¿½ï¿½`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½ï¿½
         axisH = Input.GetAxisRaw("Horizontal");
 
         AdjustmentDirection();
 
-        //Jump‚Ì“ü—Í‚ğ‹L˜^‚·‚é
+        //Jumpï¿½Ì“ï¿½ï¿½Í‚ï¿½ï¿½Lï¿½^ï¿½ï¿½ï¿½ï¿½
         if (Input.GetButtonDown("Jump"))
         {
-            //FixedUpdate‚ÅJump‚³‚¹‚é
+            //FixedUpdateï¿½ï¿½Jumpï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             goJump = true;
         }
         
@@ -102,7 +102,7 @@ public class PlayerManager : MonoBehaviour
             return;
         }
 
-        //’nã”»’è ƒCƒ“ƒXƒyƒNƒ^ã‚ÅGhostUp‚àw’è
+        //ï¿½nï¿½ã”»ï¿½ï¿½ ï¿½Cï¿½ï¿½ï¿½Xï¿½yï¿½Nï¿½^ï¿½ï¿½ï¿½GhostUpï¿½ï¿½ï¿½wï¿½ï¿½
         Transform transform1 = transform;
         Vector3 position = transform1.position;
         onGround = Physics2D.Linecast(position - (transform1.up * 0.57f) + (transform1.right * 0.5f),
@@ -110,14 +110,14 @@ public class PlayerManager : MonoBehaviour
 
         if (recorder != default)
         {
-            //Recorder‚É“ü—Í‹L˜^‚ğ‘—‚é
+            //Recorderï¿½É“ï¿½ï¿½Í‹Lï¿½^ï¿½ğ‘—‚ï¿½
             recorder.RecordMove((int)axisH);
             recorder.RecordJump(goJump);
         }
         
         Jump();
 
-        //‘¬“x‚ğXV‚·‚é
+        //ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½Xï¿½Vï¿½ï¿½ï¿½ï¿½
         rbody.velocity = new Vector2(axisH * speed, rbody.velocity.y);
     }
 
@@ -148,16 +148,16 @@ public class PlayerManager : MonoBehaviour
 
     void AdjustmentDirection()
     {
-        //Œü‚«‚Ì’²®
+        //ï¿½ï¿½ï¿½ï¿½ï¿½Ì’ï¿½ï¿½ï¿½
         if (axisH > 0.0f)
         {
-            //‰EŒü‚«
+            //ï¿½Eï¿½ï¿½ï¿½ï¿½
             transform.localScale = new Vector2(1, 1);
         }
         else if (axisH < 0.0f)
         {
-            //¶Œü‚«
-            transform.localScale = new Vector2(-1, 1); //¶‰E”½“]‚³‚¹‚é
+            //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            transform.localScale = new Vector2(-1, 1); //ï¿½ï¿½ï¿½Eï¿½ï¿½ï¿½]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         }
     }
 
@@ -165,29 +165,29 @@ public class PlayerManager : MonoBehaviour
     {
         if (goJump)
         {
-            //’n–Ê‚Ìã‚¾‚ÆƒWƒƒƒ“ƒv‚·‚é
+            //ï¿½nï¿½Ê‚Ìã‚¾ï¿½ÆƒWï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½
             if (onGround)
             {
-                Vector2 jumpPw = new Vector2(0, jump); //ƒWƒƒƒ“ƒv‚³‚¹‚éƒxƒNƒgƒ‹‚ğì‚é
+                Vector2 jumpPw = new Vector2(0, jump); //ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 rbody.velocity = new Vector2(0, 0);
-                rbody.AddForce(jumpPw, ForceMode2D.Impulse); //uŠÔ“I‚È—Í‚ğ‰Á‚¦‚é
+                rbody.AddForce(jumpPw, ForceMode2D.Impulse); //ï¿½uï¿½Ô“Iï¿½È—Í‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             }
         }
         goJump = false;
     }
 
-    //ÚGŠJn
+    //ï¿½ÚGï¿½Jï¿½n
     public void OnTriggerEnter2D(Collider2D collision)
     {
         switch (collision.gameObject.tag)
         {
             case "Goal":
-                Goal();//ƒS[ƒ‹II
-                Debug.Log("ƒS[ƒ‹");
+                Goal();//ï¿½Sï¿½[ï¿½ï¿½ï¿½Iï¿½I
+                Debug.Log("ï¿½Sï¿½[ï¿½ï¿½");
                 break;
             case "Dead":
-                GameOver(); //ƒQ[ƒ€ƒI[ƒo[II
-                Debug.Log("ƒQ[ƒ€ƒI[ƒo[");
+                GameOver(); //ï¿½Qï¿½[ï¿½ï¿½ï¿½Iï¿½[ï¿½oï¿½[ï¿½Iï¿½I
+                Debug.Log("ï¿½Qï¿½[ï¿½ï¿½ï¿½Iï¿½[ï¿½oï¿½[");
                 break;
             case "FinalGoal":
                 //FadeManager.fadeColor = Color.white;
@@ -199,7 +199,7 @@ public class PlayerManager : MonoBehaviour
 
     private void Goal()
     {
-        gameState = (int)State.gameclear;
+        //gameState = (int)State.gameclear;
         //SceneManager.LoadScene(nextScene);
     }
     
@@ -207,21 +207,21 @@ public class PlayerManager : MonoBehaviour
     private void GameOver()
     {
         gameState = (int)State.gameover;
-        GameStop(); //ƒQ[ƒ€’â~
+        GameStop(); //ï¿½Qï¿½[ï¿½ï¿½ï¿½ï¿½~
         // =======================================
-        // ƒQ[ƒ€ƒI[ƒo[‰‰o
+        // ï¿½Qï¿½[ï¿½ï¿½ï¿½Iï¿½[ï¿½oï¿½[ï¿½ï¿½ï¿½o
         // =======================================
 
-        //ƒvƒŒƒCƒ„[“–‚½‚è”»’è‚ğÁ‚·
+        //ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         //HideCollider();
 
-        //ƒvƒŒƒCƒ„[‚ğã‚É­‚µ’µ‚Ëã‚°‚é‰‰o
+        //ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½Éï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ëã‚°ï¿½é‰‰ï¿½o
         //rbody.AddForce(new Vector2(0, 100), ForceMode2D.Impulse);
     }
 
     private void GameStop()
     {
-        //‘¬“x‚ğ‚O‚É‚µ‚Ä‹­§’â~
+        //ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½Oï¿½É‚ï¿½ï¿½Ä‹ï¿½ï¿½ï¿½ï¿½ï¿½~
         rbody.velocity = new Vector2(0, 0);
     }
 
