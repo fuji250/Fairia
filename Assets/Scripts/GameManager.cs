@@ -1,9 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -14,6 +18,9 @@ public class GameManager : MonoBehaviour
     public Button nextButtton;
 
     public GameObject panel;
+    public GameObject failedPanel;
+    public TextMeshProUGUI failedText;
+    
     public GameObject rPanel;
     public GameObject nPanel;
     
@@ -31,7 +38,7 @@ public class GameManager : MonoBehaviour
     {
         //パネルを非表示にする
         HidePanel();
-
+        
         //ColorAdjustmentsを取得する
         volume.profile.TryGet(out colorAdjustments);
     }
@@ -52,14 +59,20 @@ public class GameManager : MonoBehaviour
             nPanel.SetActive(false);
             rPanel.SetActive(true);
 
+            //パネルを一秒だけ表示
+            failedPanel.SetActive(true);
+            SoundManager.instance.PlaySE(0);
+            Invoke("HidePanel",1);
+            
             isFadeOut = true;
-            /*
-            while (colorAdjustments.postExposure.value < 5)
-            {
-                colorAdjustments.postExposure.value += 0.001f;
-            }
-            */
         }
+
+        if (Input.GetKey(KeyCode.R))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+        
+        /*
         if (isFadeOut) 
         {
             StartFadeOut ();
@@ -69,6 +82,7 @@ public class GameManager : MonoBehaviour
             StartFadeIn ();
         }
         previousGameState = PlayerManager.gameState;
+        */
     }
 
     void StartFadeOut()
@@ -96,5 +110,7 @@ public class GameManager : MonoBehaviour
     {
         nPanel.SetActive(false);
         rPanel.SetActive(false);
+        
+        failedPanel.SetActive(false);
     }
 }

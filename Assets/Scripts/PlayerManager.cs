@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System;
 
 
 public class PlayerManager : MonoBehaviour
@@ -64,7 +65,6 @@ public class PlayerManager : MonoBehaviour
         //���������̓��͂��`�F�b�N����
         axisH = Input.GetAxisRaw("Horizontal");
 
-        AdjustmentDirection();
 
         //Jump�̓��͂��L�^����
         if (Input.GetButtonDown("Jump"))
@@ -108,6 +108,9 @@ public class PlayerManager : MonoBehaviour
         onGround = Physics2D.Linecast(position - (transform1.up * 0.57f) + (transform1.right * 0.5f),
             position - (transform1.up * 0.57f) - (transform1.right * 0.5f), groundLayer);
 
+        AdjustmentDirection();
+
+        
         if (recorder != default)
         {
             //Recorder�ɓ��͋L�^�𑗂�
@@ -133,6 +136,7 @@ public class PlayerManager : MonoBehaviour
 
     public void LeftButtonDown()
     {
+        Debug.Log("Left");
         leftMove = true;
     }
     public void LeftButtonUp()
@@ -148,35 +152,39 @@ public class PlayerManager : MonoBehaviour
 
     void AdjustmentDirection()
     {
-        //�����̒���
+        var transformLocalScale = transform.localScale;
+
+        //向きを変更する
         if (axisH > 0.0f)
         {
-            //�E����
-            transform.localScale = new Vector2(1, 1);
+            //右向き
+            transformLocalScale.x = Math.Abs(transformLocalScale.x);
         }
         else if (axisH < 0.0f)
         {
-            //������
-            transform.localScale = new Vector2(-1, 1); //���E���]������
+            //左向き
+            transformLocalScale.x = Math.Abs(transformLocalScale.x) * -1;
         }
+        transform.localScale = transformLocalScale;
+
     }
 
     public void Jump()
     {
         if (goJump)
         {
-            //�n�ʂ̏ゾ�ƃW�����v����
+            //地面の上にいるならジャンプ
             if (onGround)
             {
-                Vector2 jumpPw = new Vector2(0, jump); //�W�����v������x�N�g�������
+                Vector2 jumpPw = new Vector2(0, jump);
                 rbody.velocity = new Vector2(0, 0);
-                rbody.AddForce(jumpPw, ForceMode2D.Impulse); //�u�ԓI�ȗ͂�������
+                rbody.AddForce(jumpPw, ForceMode2D.Impulse);
             }
         }
         goJump = false;
     }
 
-    //�ڐG�J�n
+    //当たり判定
     public void OnTriggerEnter2D(Collider2D collision)
     {
         switch (collision.gameObject.tag)

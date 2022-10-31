@@ -67,7 +67,7 @@ public class Recorder : MonoBehaviour
         }
         else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.gameover)
         {
-            Invoke(nameof(Retry), 0.3f);
+            Invoke(nameof(Retry), 1f);
         }
 
         previousGameState = PlayerManager.gameState;

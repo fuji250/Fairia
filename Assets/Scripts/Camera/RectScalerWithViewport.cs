@@ -6,7 +6,7 @@ using UnityEngine;
 public class RectScalerWithViewport : MonoBehaviour
 {
     [SerializeField]
-    RectTransform refRect = null;
+    RectTransform refRect = default;
 
     [SerializeField]
     Vector2 referenceResolution = new Vector2(1920, 1080);
@@ -22,7 +22,7 @@ public class RectScalerWithViewport : MonoBehaviour
 
     private void Awake()
     {
-        if(refRect == null){
+        if(refRect == default){
             refRect = GetComponent<RectTransform>();
         }
         UpdateRect();
@@ -84,14 +84,19 @@ public class RectScalerWithViewport : MonoBehaviour
             return;
         }
 
-        refRect.localScale = new Vector3(scale, scale, scale);
+        if (refRect != default)
+        {
+            refRect.localScale = new Vector3(scale, scale, scale);
 
-        // スケールで縮まるので領域だけ広げる
-        float revScale = 1f / scale;
-        refRect.sizeDelta = new Vector2(width * revScale, height * revScale);
+            // スケールで縮まるので領域だけ広げる
+            float revScale = 1f / scale;
+            refRect.sizeDelta = new Vector2(width * revScale, height * revScale);
 
-        m_width = width;
-        m_height = height;
-        m_matchWidthOrHeight = matchWidthOrHeight;
+            m_width = width;
+            m_height = height;
+            m_matchWidthOrHeight = matchWidthOrHeight;
+        }
+
+        
    }
 }
