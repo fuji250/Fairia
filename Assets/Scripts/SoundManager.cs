@@ -6,6 +6,9 @@ public class SoundManager : MonoBehaviour
 {
     public static SoundManager instance;
 
+    private float bgmVolume;
+    private float seVolume;
+
     private void Awake()
     {
         if (instance == null)
@@ -18,12 +21,20 @@ public class SoundManager : MonoBehaviour
             Destroy(this.gameObject);
         }
     }
+
+    
     
     public AudioSource audioSourceBGM; // BGMのスピーカー
     public AudioClip[] audioClipsBGM; 
 
     public AudioSource audioSourceSE; // SEのスピーカー
     public AudioClip[] audioClipSE; // ならす素材
+    
+    void Start()
+    {
+        bgmVolume = audioSourceBGM.volume;
+        seVolume = audioSourceSE.volume;
+    }
     
     public void PlayBGM(string sceneName)
     {
@@ -56,8 +67,8 @@ public class SoundManager : MonoBehaviour
     {
         if (audioSourceBGM.volume == 0)
         {
-            audioSourceBGM.volume = 0.5f;
-            audioSourceSE.volume = 0.5f;
+            audioSourceBGM.volume = bgmVolume;
+            audioSourceSE.volume = seVolume;
         }
         else
         {

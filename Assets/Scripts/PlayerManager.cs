@@ -7,38 +7,55 @@ using System;
 
 public class PlayerManager : MonoBehaviour
 {
+    
+    
     private Recorder recorder = default;
 
-    private Rigidbody2D rbody; //Rigidbody2D�̕ϐ�
-    public float axisH = 0.0f; //����
-    public float speed = 5.0f; //�ړ����x
+    private Rigidbody2D rbody;
+    private float axisH = 0.0f; //入力の数値
+    public float speed = 5.0f; //移動速度
 
-    public float jump = 9.0f; //�W�����v��
-    public LayerMask groundLayer; //���n�ł��郌�C���[
+    public float jump = 9.0f; //ジャンプ力
+    
+    private bool onGround = false; //ジャンプ判定に使用するフラグ
+    private bool onCharacter = false;
+    public LayerMask groundLayer; //ジャンプできる地面のレイヤー
+    public LayerMask CharacterLayer; //ジャンプできる地面のレイヤー
 
     public BoxCollider2D body;
     public BoxCollider2D up;
     public BoxCollider2D down;
 
-
-    private bool goJump = false; //�W�����v�J�n�t���O
-    private bool onGround = false; //�n�ʂɗ����Ă���t���O
-
-    public static int gameState = default; //�Q�[���̏��
+    private bool goJump = false; //連続でジャンプしてしまう事を防ぐフラグ
+    
+    public static int gameState = default;
 
     public string nextScene = default;
 
+    //アニメーション対応
+    Animator animator;
+    public string idleAnime = "PlayerIdle";
+    public string moveAnime = "PlayerMove";
+    public string jumpAnime = "PlayerJump";
+    //public string goalAnime = "PlayerGoal";
+    //public string deadAnime = "PlayerOver";
+    public string nowAnime = "";
+    public string oldAnime = "";
 
     /// ----------------------------------------------------------------------
     private bool rightMove;
     private bool leftMove;
     /// ----------------------------------------------------------------------
 
+    //onGround判定に使用する数値
+    private float onGroundNum1 = 0.05f;
+    private float onGroundNum2 = 0.45f;
+    
     public enum State
     {
-        playing,
-        gameclear,
-        gameover
+        Playing,
+        Gameclear,
+        Gameover
     }
     
     // Start is called before the first frame update
@@ -49,139 +66,173 @@ public class PlayerManager : MonoBehaviour
             recorder = GameObject.Find("Recorder").GetComponent<Recorder>();
         }
         
-        //Rigidbody2D������Ă���
+        //Rigidbody2Dを取得
         rbody = this.GetComponent<Rigidbody2D>();
-        gameState = (int)State.playing; //�Q�[�����ɂ���
+        //Anmatorを取得
+        animator = GetComponent<Animator>();
+        nowAnime = idleAnime;
+        oldAnime = idleAnime;
+        
+        //ゲーム開始
+        gameState = (int)State.Playing;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (gameState != (int)State.playing)
+        if (gameState != (int)State.Playing)
         {
             return;
         }
 
-        //���������̓��͂��`�F�b�N����
+        //入力を取得する
         axisH = Input.GetAxisRaw("Horizontal");
 
-
-        //Jump�̓��͂��L�^����
+        //Jump入力を記録する
         if (Input.GetButtonDown("Jump"))
         {
-            //FixedUpdate��Jump������
+            //FixedUpdateで一度だけJumpさせる
             goJump = true;
         }
+
+        //ChangeMass();
+        
+        
         
         /// ----------------------------------------------------------------------
         /*
-        if (rightMove)
-        {
-            axisH = 1;
-        }
-        if (leftMove)
-        {
-            axisH = -1;
-        }
-        if (!rightMove && !leftMove)
-        {
-            axisH = 0;
-        }
-        if (rightMove && leftMove)
-        {
-            axisH = 0;
-        }
+        if (rightMove) axisH = 1;
+        if (leftMove) axisH = -1;
+        if (!rightMove && !leftMove) axisH = 0;
+        if (rightMove && leftMove) axisH = 0;
         */
         /// ----------------------------------------------------------------------
     }
 
     private void FixedUpdate()
     {
-        if (gameState != (int)State.playing)
+        if (gameState != (int)State.Playing)
         {
             return;
         }
 
-        //�n�㔻�� �C���X�y�N�^���GhostUp���w��
-        Transform transform1 = transform;
-        Vector3 position = transform1.position;
-        onGround = Physics2D.Linecast(position - (transform1.up * 0.57f) + (transform1.right * 0.5f),
-            position - (transform1.up * 0.57f) - (transform1.right * 0.5f), groundLayer);
-
+        CheckOnGround();
         AdjustmentDirection();
-
-        
-        if (recorder != default)
-        {
-            //Recorder�ɓ��͋L�^�𑗂�
-            recorder.RecordMove((int)axisH);
-            recorder.RecordJump(goJump);
-        }
-        
+        SendRecord();
+        PlaybackAnimation();
         Jump();
 
-        //���x���X�V����
+        //左右移動の反映
         rbody.velocity = new Vector2(axisH * speed, rbody.velocity.y);
     }
 
     /// ----------------------------------------------------------------------
-    public void RightButtonDown()
+   
+    // MoveButttonのEventTriggerから使用
+    public void PushRightButton(bool isDown)
     {
-        rightMove = true;
+        rightMove = isDown;
     }
-    public void RightButtonUp()
-    {
-        rightMove = false;
-    }
-
-    public void LeftButtonDown()
+    public void PushLeftButton(bool isDown)
     {
         Debug.Log("Left");
-        leftMove = true;
+        leftMove = isDown;
     }
-    public void LeftButtonUp()
-    {
-        leftMove = false;
-    }
-
     public void JumpButtonDown()
     {
         goJump = true;
     }
     /// ----------------------------------------------------------------------
-
-    void AdjustmentDirection()
-    {
-        var transformLocalScale = transform.localScale;
-
-        //向きを変更する
-        if (axisH > 0.0f)
-        {
-            //右向き
-            transformLocalScale.x = Math.Abs(transformLocalScale.x);
-        }
-        else if (axisH < 0.0f)
-        {
-            //左向き
-            transformLocalScale.x = Math.Abs(transformLocalScale.x) * -1;
-        }
-        transform.localScale = transformLocalScale;
-
-    }
-
-    public void Jump()
+    private void Jump()
     {
         if (goJump)
         {
             //地面の上にいるならジャンプ
             if (onGround)
             {
+                //質量戻す
+                //rbody.mass = 10;
+                
                 Vector2 jumpPw = new Vector2(0, jump);
                 rbody.velocity = new Vector2(0, 0);
                 rbody.AddForce(jumpPw, ForceMode2D.Impulse);
             }
         }
         goJump = false;
+    }
+
+    private void ChangeMass()
+    {
+        if (onCharacter)
+        {
+            rbody.mass = 0;
+        }
+        else
+        {
+            rbody.mass = 10;
+        }
+    }
+
+    private void CheckOnGround()
+    {
+        //Groundの上にいるかチェック
+        Transform transform1 = transform;
+        Vector3 position = transform1.position;
+        Vector3 x = (transform1.right * onGroundNum2);
+        Vector3 y = (transform1.up * onGroundNum1);
+        onGround = Physics2D.Linecast(position - y + x, position - y - x, groundLayer);
+        onCharacter = Physics2D.Linecast(position - y + x, position - y - x, CharacterLayer);
+
+        /*
+        //上から落ちてきた時の重力を消す
+        if (onCharacter)
+        {
+            var rbodyVelocity = rbody.velocity;
+            rbodyVelocity.y = 0;
+            rbody.velocity = rbodyVelocity;
+        }
+        */
+        
+    }
+    
+    //向きを変更する
+    private void AdjustmentDirection()
+    {
+        var transformLocalScale = transform.localScale;
+
+        if (axisH > 0.0f) transformLocalScale.x = Math.Abs(transformLocalScale.x);
+        else if (axisH < 0.0f) transformLocalScale.x = Math.Abs(transformLocalScale.x) * -1;
+
+        transform.localScale = transformLocalScale;
+    }
+
+    private void SendRecord()
+    {
+        if (recorder != default)
+        {
+            //Recorderに操作入力情報を送信
+            recorder.RecordMove((int)axisH);
+            recorder.RecordJump(goJump);
+        }
+    }
+
+    private void PlaybackAnimation()
+    {
+        //アニメーションの再生
+        if (onGround)
+        {
+            if(axisH == 0)　nowAnime = idleAnime;
+            else　nowAnime = moveAnime;
+        }
+        else
+        {
+            nowAnime = jumpAnime;
+        }
+        if(nowAnime != oldAnime)
+        {
+            oldAnime = nowAnime;
+            animator.Play(nowAnime);
+        }
     }
 
     //当たり判定
@@ -211,28 +262,24 @@ public class PlayerManager : MonoBehaviour
         //SceneManager.LoadScene(nextScene);
     }
     
-
     private void GameOver()
     {
-        gameState = (int)State.gameover;
-        GameStop(); //�Q�[����~
-        // =======================================
-        // �Q�[���I�[�o�[���o
-        // =======================================
-
-        //�v���C���[�����蔻�������
-        //HideCollider();
-
-        //�v���C���[����ɏ������ˏグ�鉉�o
-        //rbody.AddForce(new Vector2(0, 100), ForceMode2D.Impulse);
-    }
-
-    private void GameStop()
-    {
-        //���x���O�ɂ��ċ�����~
         rbody.velocity = new Vector2(0, 0);
+        gameState = (int)State.Gameover;
     }
 
+    //一時停止
+    public void Pause()
+    {
+        Time.timeScale = 0;
+    }
+    
+    //再開
+    public void Restart()
+    {
+        Time.timeScale = 1;
+    }
+    
     private void HideCollider()
     {
         body.enabled = false;

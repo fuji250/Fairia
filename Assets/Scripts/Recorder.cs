@@ -4,13 +4,8 @@ using UnityEngine;
 
 public class Recorder : MonoBehaviour 
 {
-    [SerializeField]
     private GameObject player;
-    //　操作キャラクター
-    [SerializeField]
     private PlayerManager playerManager;
-    
-
     private float speed;
     private float jump;
 
@@ -24,14 +19,15 @@ public class Recorder : MonoBehaviour
     //　経過時間
     private float elapsedTime = 0f;
 
-    bool onGround = false;//地面に立っているフラグ
+    private bool onGround = false;//地面に立っているフラグ
+    private LayerMask groundLayer;//ジャンプできる地面のレイヤー
 
     //　ゴーストPrefab
     [SerializeField]
     public GameObject ghostPref;
 
     public List<GameObject> ghosts;
-    public List<Rigidbody2D> rbodys;
+    public List<Rigidbody2D> rbodys = default;
 
     public List<bool> currentRight = new List<bool>();
     public List<bool> currentLeft = new List<bool>();
@@ -41,31 +37,48 @@ public class Recorder : MonoBehaviour
     private readonly List<List<bool>> leftLists = new List<List<bool>>();
     private readonly List<List<bool>> jumpLists = new List<List<bool>>();
 
-    public float xpos = 0.0f;
-    public float ypos = 0.0f;
+    //スタート地点
+    private float xPos = 0.0f;
+    private float yPos = 0.0f;
 
     //ゴースト再生のフラグ
     private bool isPlayback = false;
     private int ghostFrameNum = 0;
 
     private int previousGameState;
+    
+    //アニメーション対応
+    public List<Animator> animators = default;
+    private const string idleAnime = "PlayerIdle";
+    private const string moveAnime = "PlayerMove";
+    private const string jumpAnime = "PlayerJump";
+
+    //public string goalAnime = "PlayerGoal";
+    //public string deadAnime = "PlayerOver";
+    public List<string> nowAnimes = default;
+    public List<string>  oldAnimes = default;
+
+    //onGround判定に使用する数値
+    private const float onGroundNum1 = 0.05f;
+    private const float onGroundNum2 = 0.45f;
 
     // Start is called before the first frame update
     void Start()
     {
+        GetPlayerInformation();
         StartRecord();
-        speed = playerManager.speed;
-        jump = playerManager.jump;
+
+        groundLayer = playerManager.groundLayer;
     }
 
     // Update is called once per frame
     void Update()
     {
         //記録
-        if (isRecord && PlayerManager.gameState == (int)PlayerManager.State.playing)
+        if (isRecord && PlayerManager.gameState == (int)PlayerManager.State.Playing)
         {
         }
-        else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.gameover)
+        else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.Gameover)
         {
             Invoke(nameof(Retry), 1f);
         }
@@ -84,6 +97,20 @@ public class Recorder : MonoBehaviour
             }
             ghostFrameNum++;
         }
+    }
+
+    //Playerの情報取得
+    private void GetPlayerInformation()
+    {
+        player = GameObject.Find("Player");
+        playerManager = player.GetComponent<PlayerManager>();
+        
+        speed = playerManager.speed;
+        jump = playerManager.jump;
+
+        var position = player.transform.position;
+        xPos = position.x;
+        yPos = position.y;
     }
 
     //PlayerManagerで呼びだし
@@ -120,6 +147,7 @@ public class Recorder : MonoBehaviour
         currentJump.Add(false);
         jumpLists.Add(currentJump);
 
+        //次のゴースト用のリスト追加
         currentRight = new List<bool>();
         currentLeft = new List<bool>();
         currentJump = new List<bool>();
@@ -136,8 +164,16 @@ public class Recorder : MonoBehaviour
         else
         {
             //ゴースト生成
-            ghosts.Add(Instantiate(ghostPref, new Vector2(xpos, ypos), Quaternion.identity));
-            rbodys.Add(ghosts[ghosts.Count - 1].GetComponent<Rigidbody2D>());
+            ghosts.Add(Instantiate(ghostPref, new Vector2(xPos, yPos), Quaternion.identity));
+            //ゴーストの数を宣言
+            int i = ghosts.Count - 1;
+            
+            rbodys.Add(ghosts[i].GetComponent<Rigidbody2D>());
+            
+            //Animatorを取ってくる
+            animators.Add(ghosts[i].GetComponent<Animator>());
+            nowAnimes.Add(idleAnime);
+            oldAnimes.Add(idleAnime);
 
             isPlayback = true;
         }
@@ -146,33 +182,50 @@ public class Recorder : MonoBehaviour
     //　ゴーストの再生
     private void PlayBack(int ghostNum)
     {
+        //もしまだ入力記録が残っていたら
         if (ghostFrameNum < rightLists[ghostNum].Count)
         {
+            CheckOnGround(ghostNum);
+            
+            //アニメーションの再生
+            if (onGround) nowAnimes[ghostNum] = moveAnime;
+            else　nowAnimes[ghostNum] = jumpAnime;
+            
             //右のみ押されていた場合、右移動
             if (rightLists[ghostNum][ghostFrameNum] == true && leftLists[ghostNum][ghostFrameNum] == false)
             {
                 rbodys[ghostNum].velocity = new Vector2(speed * 1, rbodys[ghostNum].velocity.y);
                 ghosts[ghostNum].transform.localScale = new Vector2(1, 1);
+                
+                
             }
             else if (leftLists[ghostNum][ghostFrameNum] == true)
             {
                 rbodys[ghostNum].velocity = new Vector2(speed * -1, rbodys[ghostNum].velocity.y);
                 ghosts[ghostNum].transform.localScale = new Vector2(-1, 1);
-            }else
+            }
+            else
             {
                 rbodys[ghostNum].velocity = new Vector2(0, rbodys[ghostNum].velocity.y);
+                
+                if (onGround) nowAnimes[ghostNum] = idleAnime;
             }
             
             if (jumpLists[ghostNum][ghostFrameNum] == true)
             {
-                //地上判定
-                onGround = Physics2D.Linecast(ghosts[ghostNum].transform.position - (ghosts[ghostNum].transform.up * 0.56f) + (ghosts[ghostNum].transform.right * 0.5f), ghosts[ghostNum].transform.position - (ghosts[ghostNum].transform.up * 0.56f) - (ghosts[ghostNum].transform.right * 0.5f), playerManager.groundLayer);
-                
                 if (onGround)
                 {
+                    //Jump!
                     Vector2 jumpPw = new Vector2(0, jump);
                     rbodys[ghostNum].AddForce(jumpPw, ForceMode2D.Impulse);
                 }
+            }
+            
+            //状態が変わった時のみアニメ再生させる
+            if(nowAnimes[ghostNum] != oldAnimes[ghostNum])
+            {
+                oldAnimes[ghostNum] = nowAnimes[ghostNum];
+                animators[ghostNum].Play(nowAnimes[ghostNum]);
             }
         }
     }
@@ -182,13 +235,13 @@ public class Recorder : MonoBehaviour
     public void Retry()
     {
         //キャラクタをスタート地点に戻す
-        player.transform.position = new Vector2(xpos, ypos);
+        player.transform.position = new Vector2(xPos, yPos);
         for (int i = 0; i < ghosts.Count; i++)
         {
-            ghosts[i].transform.position = new Vector2(xpos, ypos);
+            ghosts[i].transform.position = new Vector2(xPos, yPos);
         }
 
-        PlayerManager.gameState = (int)PlayerManager.State.playing;
+        PlayerManager.gameState = (int)PlayerManager.State.Playing;
 
         ghostFrameNum = 0;
         StopRecord();
@@ -196,4 +249,15 @@ public class Recorder : MonoBehaviour
         StartRecord();
     }
 
+    private void CheckOnGround(int ghostNum)
+    {
+        //Groundの上にいるかチェック
+        Transform transform1 = ghosts[ghostNum].transform;
+        Vector3 position = transform1.position;
+        Vector3 x = (transform1.right * onGroundNum2);
+        Vector3 y = (transform1.up * onGroundNum1);
+                
+        //地上判定
+        onGround = Physics2D.Linecast(position - y + x, position - y - x, groundLayer);
+    }
 }

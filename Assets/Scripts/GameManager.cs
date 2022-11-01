@@ -46,15 +46,15 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (PlayerManager.gameState == (int)PlayerManager.State.playing)
+        if (PlayerManager.gameState == (int)PlayerManager.State.Playing)
         {
                     HidePanel();
         }
-        else if (PlayerManager.gameState == (int)PlayerManager.State.gameclear)
+        else if (PlayerManager.gameState == (int)PlayerManager.State.Gameclear)
         {
 
         }
-        else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.gameover)
+        else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.Gameover)
         {
             nPanel.SetActive(false);
             rPanel.SetActive(true);
