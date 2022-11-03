@@ -21,19 +21,20 @@ public class SoundManager : MonoBehaviour
             Destroy(this.gameObject);
         }
     }
-
-    
-    
     public AudioSource audioSourceBGM; // BGMのスピーカー
     public AudioClip[] audioClipsBGM; 
 
     public AudioSource audioSourceSE; // SEのスピーカー
     public AudioClip[] audioClipSE; // ならす素材
+
+    public int soundSwitch;
     
     void Start()
     {
         bgmVolume = audioSourceBGM.volume;
         seVolume = audioSourceSE.volume;
+
+        SetupSoundVolume();
     }
     
     public void PlayBGM(string sceneName)
@@ -63,9 +64,9 @@ public class SoundManager : MonoBehaviour
         audioSourceSE.PlayOneShot(audioClipSE[index]); // SEを一度だけならす
     }
 
-    public void SwitchingSound()
+    public void SetupSoundVolume()
     {
-        if (audioSourceBGM.volume == 0)
+        if (PlayerPrefs.GetInt("soundVolume", 0) == 1)
         {
             audioSourceBGM.volume = bgmVolume;
             audioSourceSE.volume = seVolume;
@@ -75,7 +76,26 @@ public class SoundManager : MonoBehaviour
             audioSourceBGM.volume = 0;
             audioSourceSE.volume = 0;
         }
+    }
+    
+    
+    public void SwitchingSound()
+    {
+        if (PlayerPrefs.GetInt("soundVolume",0) == 0)
+        {
+            audioSourceBGM.volume = bgmVolume;
+            audioSourceSE.volume = seVolume;
             
-
+            PlayerPrefs.SetInt("soundVolume",1);
+            PlayerPrefs.Save ();
+        }
+        else
+        {
+            audioSourceBGM.volume = 0;
+            audioSourceSE.volume = 0;
+            
+            PlayerPrefs.SetInt("soundVolume",0);
+            PlayerPrefs.Save ();
+        }
     }
 }

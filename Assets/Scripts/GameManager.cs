@@ -61,7 +61,7 @@ public class GameManager : MonoBehaviour
 
             //ƒpƒlƒ‹‚ğˆê•b‚¾‚¯•\¦
             failedPanel.SetActive(true);
-            SoundManager.instance.PlaySE(0);
+            
             Invoke("HidePanel",1);
             
             isFadeOut = true;
@@ -81,8 +81,10 @@ public class GameManager : MonoBehaviour
         {
             StartFadeIn ();
         }
-        previousGameState = PlayerManager.gameState;
         */
+        
+        //ƒQ[ƒ€ó‘Ô‚ğ‹L˜^‚·‚é
+        previousGameState = PlayerManager.gameState;
     }
 
     void StartFadeOut()

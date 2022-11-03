@@ -185,11 +185,12 @@ public class Recorder : MonoBehaviour
         //もしまだ入力記録が残っていたら
         if (ghostFrameNum < rightLists[ghostNum].Count)
         {
-            CheckOnGround(ghostNum);
+            OnGround(ghostNum);
             
             //アニメーションの再生
             if (onGround) nowAnimes[ghostNum] = moveAnime;
             else　nowAnimes[ghostNum] = jumpAnime;
+            
             
             //右のみ押されていた場合、右移動
             if (rightLists[ghostNum][ghostFrameNum] == true && leftLists[ghostNum][ghostFrameNum] == false)
@@ -249,7 +250,7 @@ public class Recorder : MonoBehaviour
         StartRecord();
     }
 
-    private void CheckOnGround(int ghostNum)
+    private void OnGround(int ghostNum) 
     {
         //Groundの上にいるかチェック
         Transform transform1 = ghosts[ghostNum].transform;

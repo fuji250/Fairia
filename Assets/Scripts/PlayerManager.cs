@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
+using UnityEngine.PlayerLoop;
 
 
 public class PlayerManager : MonoBehaviour
@@ -17,8 +18,6 @@ public class PlayerManager : MonoBehaviour
 
     public float jump = 9.0f; //ジャンプ力
     
-    private bool onGround = false; //ジャンプ判定に使用するフラグ
-    private bool onCharacter = false;
     public LayerMask groundLayer; //ジャンプできる地面のレイヤー
     public LayerMask CharacterLayer; //ジャンプできる地面のレイヤー
 
@@ -50,12 +49,15 @@ public class PlayerManager : MonoBehaviour
     //onGround判定に使用する数値
     private float onGroundNum1 = 0.05f;
     private float onGroundNum2 = 0.45f;
+
+    public int failedNum = 0;
     
     public enum State
     {
         Playing,
         Gameclear,
-        Gameover
+        Gameover,
+        Sub
     }
     
     // Start is called before the first frame update
@@ -65,16 +67,18 @@ public class PlayerManager : MonoBehaviour
         {
             recorder = GameObject.Find("Recorder").GetComponent<Recorder>();
         }
+
+        if (recorder == default)
+        {
+            gameState = (int)State.Sub;
+        }
         
-        //Rigidbody2Dを取得
-        rbody = this.GetComponent<Rigidbody2D>();
-        //Anmatorを取得
-        animator = GetComponent<Animator>();
-        nowAnime = idleAnime;
-        oldAnime = idleAnime;
+        Init();
         
         //ゲーム開始
         gameState = (int)State.Playing;
+
+        failedNum = PlayerPrefs.GetInt("FAILED", 0);
     }
 
     // Update is called once per frame
@@ -86,7 +90,7 @@ public class PlayerManager : MonoBehaviour
         }
 
         //入力を取得する
-        axisH = Input.GetAxisRaw("Horizontal");
+        //axisH = Input.GetAxisRaw("Horizontal");
 
         //Jump入力を記録する
         if (Input.GetButtonDown("Jump"))
@@ -100,12 +104,11 @@ public class PlayerManager : MonoBehaviour
         
         
         /// ----------------------------------------------------------------------
-        /*
+        //スマホ用はUpdate内の入力の取得を消す必要がある
         if (rightMove) axisH = 1;
         if (leftMove) axisH = -1;
         if (!rightMove && !leftMove) axisH = 0;
         if (rightMove && leftMove) axisH = 0;
-        */
         /// ----------------------------------------------------------------------
     }
 
@@ -116,7 +119,7 @@ public class PlayerManager : MonoBehaviour
             return;
         }
 
-        CheckOnGround();
+        //CheckOnGround();
         AdjustmentDirection();
         SendRecord();
         PlaybackAnimation();
@@ -142,57 +145,47 @@ public class PlayerManager : MonoBehaviour
     {
         goJump = true;
     }
+
     /// ----------------------------------------------------------------------
+    ///
+
+    private void Init()
+    {
+        //Rigidbody2Dを取得
+        rbody = this.GetComponent<Rigidbody2D>();
+        //Anmatorを取得
+        animator = GetComponent<Animator>();
+        nowAnime = idleAnime;
+        oldAnime = idleAnime;
+    }
+    
     private void Jump()
     {
         if (goJump)
         {
             //地面の上にいるならジャンプ
-            if (onGround)
+            if (OnGround())
             {
-                //質量戻す
-                //rbody.mass = 10;
-                
                 Vector2 jumpPw = new Vector2(0, jump);
                 rbody.velocity = new Vector2(0, 0);
                 rbody.AddForce(jumpPw, ForceMode2D.Impulse);
+                
+                SoundManager.instance.PlaySE(0);
             }
         }
         goJump = false;
     }
-
-    private void ChangeMass()
-    {
-        if (onCharacter)
-        {
-            rbody.mass = 0;
-        }
-        else
-        {
-            rbody.mass = 10;
-        }
-    }
-
-    private void CheckOnGround()
+    
+    private bool OnGround()
     {
         //Groundの上にいるかチェック
         Transform transform1 = transform;
         Vector3 position = transform1.position;
         Vector3 x = (transform1.right * onGroundNum2);
         Vector3 y = (transform1.up * onGroundNum1);
-        onGround = Physics2D.Linecast(position - y + x, position - y - x, groundLayer);
-        onCharacter = Physics2D.Linecast(position - y + x, position - y - x, CharacterLayer);
+        //Debug.DrawLine(position - y + x,position - y - x, Color.white);
 
-        /*
-        //上から落ちてきた時の重力を消す
-        if (onCharacter)
-        {
-            var rbodyVelocity = rbody.velocity;
-            rbodyVelocity.y = 0;
-            rbody.velocity = rbodyVelocity;
-        }
-        */
-        
+        return Physics2D.Linecast(position - y + x, position - y - x, groundLayer);
     }
     
     //向きを変更する
@@ -219,7 +212,7 @@ public class PlayerManager : MonoBehaviour
     private void PlaybackAnimation()
     {
         //アニメーションの再生
-        if (onGround)
+        if (OnGround())
         {
             if(axisH == 0)　nowAnime = idleAnime;
             else　nowAnime = moveAnime;
@@ -242,11 +235,11 @@ public class PlayerManager : MonoBehaviour
         {
             case "Goal":
                 Goal();//�S�[���I�I
-                Debug.Log("�S�[��");
+                Debug.Log("Goal");
                 break;
             case "Dead":
                 GameOver(); //�Q�[���I�[�o�[�I�I
-                Debug.Log("�Q�[���I�[�o�[");
+                Debug.Log("GameOver");
                 break;
             case "FinalGoal":
                 //FadeManager.fadeColor = Color.white;
@@ -264,22 +257,19 @@ public class PlayerManager : MonoBehaviour
     
     private void GameOver()
     {
+        axisH = 0;
         rbody.velocity = new Vector2(0, 0);
         gameState = (int)State.Gameover;
+
+        //失敗した回数
+        failedNum += 1;
+        PlayerPrefs.SetInt ("FAILED", failedNum);
+        PlayerPrefs.Save ();
+        Debug.Log(failedNum);
+        
+        SoundManager.instance.PlaySE(0);
     }
 
-    //一時停止
-    public void Pause()
-    {
-        Time.timeScale = 0;
-    }
-    
-    //再開
-    public void Restart()
-    {
-        Time.timeScale = 1;
-    }
-    
     private void HideCollider()
     {
         body.enabled = false;

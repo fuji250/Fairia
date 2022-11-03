@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 public class PauseManager : MonoBehaviour
 {
@@ -16,6 +17,8 @@ public class PauseManager : MonoBehaviour
     {
         pausePanel = this.gameObject;
         pausePanel.SetActive(false);
+
+        ChangeSoundButtonImage();
     }
 
     // Update is called once per frame
@@ -27,25 +30,33 @@ public class PauseManager : MonoBehaviour
     public void ShowPausePanel()
     {
         Debug.Log("ShowPausePanel");
+        Time.timeScale = 0;
         pausePanel.SetActive(true);
     }
     
     public void HidePausePanel()
     {
         Debug.Log("HidePausePanel");
-
+        Time.timeScale = 1;
         pausePanel.SetActive(false);
     }
 
     public void ChangeSoundButtonImage()
     {
-        if (soundImage.sprite == SoundOffSpr)
+        if (PlayerPrefs.GetInt("soundVolume",0) == 1)
         {
             soundImage.sprite = SoundOnSpr;
         }
-        else if (soundImage.sprite == SoundOnSpr)
+        else
         {
             soundImage.sprite = SoundOffSpr;
         }
+    }
+
+    public void ToTitle()
+    {
+        SoundManager.instance.PlaySE(0);
+        Time.timeScale = 1;
+        SceneManager.LoadScene("Title");
     }
 }
