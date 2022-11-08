@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
 
 public class Recorder : MonoBehaviour 
 {
@@ -30,15 +32,13 @@ public class Recorder : MonoBehaviour
     public List<GameObject> ghosts;
     public List<Rigidbody2D> rbodys = default;
 
-    public List<bool> currentRight = new List<bool>();
-    public List<bool> currentLeft = new List<bool>();
-    public List<bool> currentJump = new List<bool>();
+    public List<int> currentRight = new List<int>();
+    public List<int> currentLeft = new List<int>();
+    public List<int> currentJump = new List<int>();
 
-    private readonly List<List<bool>> rightLists = new List<List<bool>>();
-    private readonly List<List<bool>> leftLists = new List<List<bool>>();
-    private readonly List<List<bool>> jumpLists = new List<List<bool>>();
-
-    public static int stageGhostNum = 0;
+    private readonly List<List<int>> rightLists = new List<List<int>>();
+    private readonly List<List<int>> leftLists = new List<List<int>>();
+    private readonly List<List<int>> jumpLists = new List<List<int>>();
 
     //スタート地点
     private float xPos = 0.0f;
@@ -71,8 +71,6 @@ public class Recorder : MonoBehaviour
 
         
         groundLayer = playerManager.groundLayer;
-        
-        //stageGhostNum = PlayerPrefs.GetInt("FAILED", 0);
     }
 
     // Update is called once per frame
@@ -81,11 +79,18 @@ public class Recorder : MonoBehaviour
         //記録
         if (isRecord && PlayerManager.gameState == (int)PlayerManager.State.Playing)
         {
+            if (SceneManager.GetActiveScene().name == "Stage3")
+            {
+                isRecord = false;
+                ChangeMoveData();
+            }
         }
         else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.Gameover)
         {
             Invoke(nameof(Retry), 1f);
         }
+
+        
 
         previousGameState = PlayerManager.gameState;
     }
@@ -120,17 +125,22 @@ public class Recorder : MonoBehaviour
     //PlayerManagerで呼びだし
     public  void RecordMove(int axisH)
     {
-        if (axisH == 1) currentRight.Add(true);
-        else currentRight.Add(false);
+        if ((SceneManager.GetActiveScene().name == "Stage3"))
+        {
+            return;
+        }
+        if (axisH == 1) currentRight.Add(1);
+        else currentRight.Add(0);
         
-        if (axisH == -1) currentLeft.Add(true);
-        else currentLeft.Add(false);
+        if (axisH == -1) currentLeft.Add(1);
+        else currentLeft.Add(0);
     }
+    
     //PlayerManagerで呼びだし
     public void RecordJump(bool onJump)
     {
-        if (onJump)currentJump.Add(true);
-        else currentJump.Add(false);
+        if (onJump)currentJump.Add(1);
+        else currentJump.Add(0);
     }
 
     //　キャラクターデータの保存
@@ -144,27 +154,24 @@ public class Recorder : MonoBehaviour
     private void StopRecord()
     {
         //最後に動き続けてしまうのを防止
-        currentRight.Add(false);
+        currentRight.Add(0);
         rightLists.Add(currentRight);
-        currentLeft.Add(false);
+        currentLeft.Add(0);
         leftLists.Add(currentLeft);
-        currentJump.Add(false);
+        currentJump.Add(0);
         jumpLists.Add(currentJump);
         
-        //失敗した回数
+        //ゴーストの移動保存
         SaveData.FailedData failedData = SaveData.LoadPlayerData();
-        failedData.currentRight  = this.currentRight;
-
-        failedData.rightString = String.Join("", failedData.currentRight);
-        //failedData.rightInt = currentRight.ConvertAll(x => int.Parse(x));
-        
-        failedData.rightLists.Add(failedData.currentRight);
+        failedData.rightLists.Add(String.Join("", this.currentRight));
+        failedData.leftLists.Add(String.Join("", this.currentLeft));
+        failedData.jumpLists.Add(String.Join("", this.currentJump));
         SaveData.SavePlayerData(failedData);
 
         //次のゴースト用のリスト追加
-        currentRight = new List<bool>();
-        currentLeft = new List<bool>();
-        currentJump = new List<bool>();
+        currentRight = new List<int>();
+        currentLeft = new List<int>();
+        currentJump = new List<int>();
 
         isRecord = false;
     }
@@ -177,21 +184,24 @@ public class Recorder : MonoBehaviour
         }
         else
         {
-            //ゴースト生成
-            ghosts.Add(Instantiate(ghostPref, new Vector2(xPos, yPos), Quaternion.identity));
-            stageGhostNum++; 
-            //ゴーストの数を宣言
-            int i = ghosts.Count - 1;
-            
-            rbodys.Add(ghosts[i].GetComponent<Rigidbody2D>());
-            
-            //Animatorを取ってくる
-            animators.Add(ghosts[i].GetComponent<Animator>());
-            nowAnimes.Add(idleAnime);
-            oldAnimes.Add(idleAnime);
-
+            MakeGhost();
             isPlayback = true;
         }
+    }
+
+    private void MakeGhost()
+    {
+        //ゴースト生成
+        ghosts.Add(Instantiate(ghostPref, new Vector2(xPos, yPos), Quaternion.identity));
+        //ゴーストの数を宣言
+        int i = ghosts.Count - 1;
+            
+        rbodys.Add(ghosts[i].GetComponent<Rigidbody2D>());
+            
+        //Animatorを取ってくる
+        animators.Add(ghosts[i].GetComponent<Animator>());
+        nowAnimes.Add(idleAnime);
+        oldAnimes.Add(idleAnime);
     }
 
     //　ゴーストの再生
@@ -206,16 +216,13 @@ public class Recorder : MonoBehaviour
             if (onGround) nowAnimes[ghostNum] = moveAnime;
             else　nowAnimes[ghostNum] = jumpAnime;
             
-            
             //右のみ押されていた場合、右移動
-            if (rightLists[ghostNum][ghostFrameNum] == true && leftLists[ghostNum][ghostFrameNum] == false)
+            if (rightLists[ghostNum][ghostFrameNum]%2 == 1 && leftLists[ghostNum][ghostFrameNum]%2 == 0)
             {
                 rbodys[ghostNum].velocity = new Vector2(speed * 1, rbodys[ghostNum].velocity.y);
                 ghosts[ghostNum].transform.localScale = new Vector2(1, 1);
-                
-                
             }
-            else if (leftLists[ghostNum][ghostFrameNum] == true)
+            else if (leftLists[ghostNum][ghostFrameNum]%2 == 1)
             {
                 rbodys[ghostNum].velocity = new Vector2(speed * -1, rbodys[ghostNum].velocity.y);
                 ghosts[ghostNum].transform.localScale = new Vector2(-1, 1);
@@ -227,7 +234,7 @@ public class Recorder : MonoBehaviour
                 if (onGround) nowAnimes[ghostNum] = idleAnime;
             }
             
-            if (jumpLists[ghostNum][ghostFrameNum] == true)
+            if (jumpLists[ghostNum][ghostFrameNum]%2 == 1)
             {
                 if (onGround)
                 {
@@ -275,5 +282,51 @@ public class Recorder : MonoBehaviour
                 
         //地上判定
         onGround = Physics2D.Linecast(position - y + x, position - y - x, groundLayer);
+    }
+
+    public void ChangeMoveData()
+    {
+        //PlayerManager.gameState = (int)PlayerManager.State.Sub;
+
+        
+        isPlayback = false;
+        isRecord = false;
+        
+        ghostFrameNum = 0;
+        
+        ghosts.Clear();
+        rbodys.Clear();
+        animators.Clear();
+        
+        SaveData.FailedData failedData = SaveData.LoadPlayerData();
+        //ゴーストの数分
+        for (int i = 0; i < failedData.rightLists.Count; i++)
+        {
+            //初期化
+            this.currentRight = new List<int>();
+            this.currentLeft = new List<int>();
+            this.currentJump = new List<int>();
+            
+            //数字の文字列をリストに収納(一人分)
+            for (int j = 0; j < failedData.rightLists[i].Length; j++)
+            {
+                int x = failedData.rightLists[i][j];
+                Debug.Log(x);
+                //this.rights.Add(x);
+                this.currentRight.Add(failedData.rightLists[i][j]);
+                this.currentLeft.Add(failedData.leftLists[i][j]);
+                this.currentJump.Add(failedData.jumpLists[i][j]);
+                
+                Debug.Log(failedData.rightLists[i][j]);
+            }
+
+            this.rightLists.Add(currentRight);
+            this.leftLists.Add(currentLeft);
+            this.jumpLists.Add(currentJump);
+            
+            MakeGhost();
+        }
+        
+        isPlayback = true;
     }
 }

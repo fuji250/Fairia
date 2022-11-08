@@ -11,17 +11,18 @@ public class SaveData : MonoBehaviour
     {
         public int failedNum;
         
-        public List<List<bool>> rightLists = new List<List<bool>>();
-        public List<bool> currentRight = new List<bool>();
-        public string rightString;
-        public int rightInt;
-        public List<int> rightInts = new List<int>();
+        public List<int> currentRight = new List<int>();
+        public List<string> rightLists = new List<string>();
+        public List<int> currentLeft = new List<int>();
+        public List<string> leftLists = new List<string>();
+        public List<int> currentJump = new List<int>();
+        public List<string> jumpLists = new List<string>();
     }
 
     private void Awake()
     {
         SaveData.FailedData failedData = new SaveData.FailedData();
-        SaveData.SavePlayerData(failedData);
+        //SaveData.SavePlayerData(failedData);
     }
 
     public static void SavePlayerData(FailedData failedData)
@@ -38,6 +39,10 @@ public class SaveData : MonoBehaviour
     
     public static FailedData LoadPlayerData()
     {
+        if (!File.Exists(Application.dataPath + "/savedata.json"))
+        {
+            SavePlayerData(new SaveData.FailedData());
+        }
         string datastr = "";
         StreamReader reader;
         reader = new StreamReader (Application.dataPath + "/savedata.json");

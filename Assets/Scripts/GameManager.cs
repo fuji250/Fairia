@@ -45,12 +45,12 @@ public class GameManager : MonoBehaviour
         }
 
         //RESET
-        if (Input.GetKey(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.R))
         {
             Reset();
         }
 
-        if (Input.GetKey(KeyCode.G))
+        if (Input.GetKeyDown(KeyCode.G))
         {
             Debug.Log(PlayerManager.gameState);
         }
