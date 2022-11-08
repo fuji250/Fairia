@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -11,36 +12,20 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-
-    [SerializeField]
-    public Button restartButtton;
-    [SerializeField]
-    public Button nextButtton;
-
-    public GameObject panel;
     public GameObject failedPanel;
     public TextMeshProUGUI failedText;
     
-    public GameObject rPanel;
-    public GameObject nPanel;
-    
     public Volume volume;
-    private ColorAdjustments colorAdjustments;
-    
     private int previousGameState;
-    private float fadeSpeed = 40f;
-    private bool isFadeIn;
-    private bool isFadeOut;
-    
+
 
     // Start is called before the first frame update
     void Start()
     {
         //パネルを非表示にする
         HidePanel();
-        
-        //ColorAdjustmentsを取得する
-        volume.profile.TryGet(out colorAdjustments);
+
+        PlayerManager.gameState = (int)PlayerManager.State.Playing;
     }
 
     // Update is called once per frame
@@ -56,63 +41,57 @@ public class GameManager : MonoBehaviour
         }
         else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.Gameover)
         {
-            nPanel.SetActive(false);
-            rPanel.SetActive(true);
-
-            //パネルを一秒だけ表示
-            failedPanel.SetActive(true);
-            
-            Invoke("HidePanel",1);
-            
-            isFadeOut = true;
+            ShowFailedPanel();
         }
 
+        //RESET
         if (Input.GetKey(KeyCode.R))
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            Reset();
         }
-        
-        /*
-        if (isFadeOut) 
+
+        if (Input.GetKey(KeyCode.G))
         {
-            StartFadeOut ();
+            Debug.Log(PlayerManager.gameState);
         }
-        if(isFadeIn)
-        {
-            StartFadeIn ();
-        }
-        */
         
         //ゲーム状態を記録する
         previousGameState = PlayerManager.gameState;
     }
 
-    void StartFadeOut()
+    public void ShowFailedPanel()
     {
-        colorAdjustments.postExposure.value += fadeSpeed * Time.deltaTime; // b)不透明度を徐々にあげる
-        if (colorAdjustments.postExposure.value >= 10)
-        {
-            // d)完全に不透明になったら処理を抜ける
-            isFadeOut = false;
-            isFadeIn = true;
-        }
-    }
-    
-    void StartFadeIn()
-    {
-        colorAdjustments.postExposure.value -= fadeSpeed * Time.deltaTime; //a)不透明度を徐々に下げる
-        if (colorAdjustments.postExposure.value <= 0)
-        {
-            //c)完全に透明になったら処理を抜ける
-            isFadeIn = false;
-        }
+        //失敗した回数
+        SaveData.FailedData failedData = SaveData.LoadPlayerData();
+        failedData.failedNum  = SaveData.LoadPlayerData().failedNum +1;
+        SaveData.SavePlayerData(failedData);
+        
+        Debug.Log(failedData.failedNum);
+        
+
+        //パネルを一秒だけ表示
+        failedText.text = failedData.failedNum.ToString();
+        failedPanel.SetActive(true);
+            
+        Invoke(nameof(HidePanel),1f);
     }
 
     void HidePanel()
     {
-        nPanel.SetActive(false);
-        rPanel.SetActive(false);
-        
         failedPanel.SetActive(false);
+    }
+
+    public delegate void LabelUpdateDelegate();
+    
+    public void Reset()
+    {
+        PlayerManager.gameState = (int)PlayerManager.State.Gameover;
+        Invoke(nameof(Load),1f);
+    }
+
+    private void Load()
+    {
+        //HidePanel();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

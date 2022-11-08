@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -37,6 +38,8 @@ public class Recorder : MonoBehaviour
     private readonly List<List<bool>> leftLists = new List<List<bool>>();
     private readonly List<List<bool>> jumpLists = new List<List<bool>>();
 
+    public static int stageGhostNum = 0;
+
     //スタート地点
     private float xPos = 0.0f;
     private float yPos = 0.0f;
@@ -52,9 +55,7 @@ public class Recorder : MonoBehaviour
     private const string idleAnime = "PlayerIdle";
     private const string moveAnime = "PlayerMove";
     private const string jumpAnime = "PlayerJump";
-
-    //public string goalAnime = "PlayerGoal";
-    //public string deadAnime = "PlayerOver";
+    
     public List<string> nowAnimes = default;
     public List<string>  oldAnimes = default;
 
@@ -68,7 +69,10 @@ public class Recorder : MonoBehaviour
         GetPlayerInformation();
         StartRecord();
 
+        
         groundLayer = playerManager.groundLayer;
+        
+        //stageGhostNum = PlayerPrefs.GetInt("FAILED", 0);
     }
 
     // Update is called once per frame
@@ -146,6 +150,16 @@ public class Recorder : MonoBehaviour
         leftLists.Add(currentLeft);
         currentJump.Add(false);
         jumpLists.Add(currentJump);
+        
+        //失敗した回数
+        SaveData.FailedData failedData = SaveData.LoadPlayerData();
+        failedData.currentRight  = this.currentRight;
+
+        failedData.rightString = String.Join("", failedData.currentRight);
+        //failedData.rightInt = currentRight.ConvertAll(x => int.Parse(x));
+        
+        failedData.rightLists.Add(failedData.currentRight);
+        SaveData.SavePlayerData(failedData);
 
         //次のゴースト用のリスト追加
         currentRight = new List<bool>();
@@ -165,6 +179,7 @@ public class Recorder : MonoBehaviour
         {
             //ゴースト生成
             ghosts.Add(Instantiate(ghostPref, new Vector2(xPos, yPos), Quaternion.identity));
+            stageGhostNum++; 
             //ゴーストの数を宣言
             int i = ghosts.Count - 1;
             

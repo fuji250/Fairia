@@ -4,11 +4,14 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
 using UnityEngine.PlayerLoop;
+using UnityEngine.UIElements;
+using DG.Tweening;
 
 
 public class PlayerManager : MonoBehaviour
 {
-    
+    private Camera mainCamera = default;
+    private Vector3 camPosition;
     
     private Recorder recorder = default;
 
@@ -50,7 +53,8 @@ public class PlayerManager : MonoBehaviour
     private float onGroundNum1 = 0.05f;
     private float onGroundNum2 = 0.45f;
 
-    public int failedNum = 0;
+    public static int failedNum = 0;
+    
     
     public enum State
     {
@@ -59,10 +63,10 @@ public class PlayerManager : MonoBehaviour
         Gameover,
         Sub
     }
-    
     // Start is called before the first frame update
     void Start()
     {
+        mainCamera = Camera.main;
         if (GameObject.Find("Recorder") != null)
         {
             recorder = GameObject.Find("Recorder").GetComponent<Recorder>();
@@ -86,11 +90,13 @@ public class PlayerManager : MonoBehaviour
     {
         if (gameState != (int)State.Playing)
         {
+            axisH = 0;
+            rbody.velocity = new Vector2(0, 0);
             return;
         }
 
         //入力を取得する
-        //axisH = Input.GetAxisRaw("Horizontal");
+        axisH = Input.GetAxisRaw("Horizontal");
 
         //Jump入力を記録する
         if (Input.GetButtonDown("Jump"))
@@ -102,7 +108,7 @@ public class PlayerManager : MonoBehaviour
         //ChangeMass();
         
         
-        
+        /*
         /// ----------------------------------------------------------------------
         //スマホ用はUpdate内の入力の取得を消す必要がある
         if (rightMove) axisH = 1;
@@ -110,6 +116,7 @@ public class PlayerManager : MonoBehaviour
         if (!rightMove && !leftMove) axisH = 0;
         if (rightMove && leftMove) axisH = 0;
         /// ----------------------------------------------------------------------
+        */
     }
 
     private void FixedUpdate()
@@ -117,6 +124,9 @@ public class PlayerManager : MonoBehaviour
         if (gameState != (int)State.Playing)
         {
             return;
+        }else if (gameState == (int)State.Gameclear)
+        {
+            
         }
 
         //CheckOnGround();
@@ -138,7 +148,6 @@ public class PlayerManager : MonoBehaviour
     }
     public void PushLeftButton(bool isDown)
     {
-        Debug.Log("Left");
         leftMove = isDown;
     }
     public void JumpButtonDown()
@@ -151,6 +160,8 @@ public class PlayerManager : MonoBehaviour
 
     private void Init()
     {
+        camPosition = mainCamera.transform.position;
+        
         //Rigidbody2Dを取得
         rbody = this.GetComponent<Rigidbody2D>();
         //Anmatorを取得
@@ -234,7 +245,8 @@ public class PlayerManager : MonoBehaviour
         switch (collision.gameObject.tag)
         {
             case "Goal":
-                Goal();//�S�[���I�I
+                Goal();
+                //StartCoroutine(nameof(Goal));
                 Debug.Log("Goal");
                 break;
             case "Dead":
@@ -242,31 +254,28 @@ public class PlayerManager : MonoBehaviour
                 Debug.Log("GameOver");
                 break;
             case "FinalGoal":
-                //FadeManager.fadeColor = Color.white;
-                //dia.SetActive(false);
                 //LastFade.Instance.LoadScene("LAST", 1.0f);
                 break;
         }
     }
 
-    private void Goal()
+    void  Goal()
     {
-        //gameState = (int)State.gameclear;
-        //SceneManager.LoadScene(nextScene);
+        axisH = 0;
+        rbody.velocity = new Vector2(0, 0);
+        gameState = (int)State.Gameclear;
+        Camera.main.transform.DOMoveX(Camera.main.transform.position.x + 22, 0.8f).SetEase(Ease.OutQuad).OnComplete(
+            () =>
+            {
+                SceneManager.LoadScene(nextScene);
+            });
     }
     
     private void GameOver()
     {
-        axisH = 0;
-        rbody.velocity = new Vector2(0, 0);
+        
         gameState = (int)State.Gameover;
 
-        //失敗した回数
-        failedNum += 1;
-        PlayerPrefs.SetInt ("FAILED", failedNum);
-        PlayerPrefs.Save ();
-        Debug.Log(failedNum);
-        
         SoundManager.instance.PlaySE(0);
     }
 

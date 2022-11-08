@@ -21,12 +21,6 @@ public class PauseManager : MonoBehaviour
         ChangeSoundButtonImage();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public void ShowPausePanel()
     {
         Debug.Log("ShowPausePanel");
