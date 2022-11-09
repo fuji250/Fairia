@@ -24,15 +24,12 @@ public class PlayerManager : MonoBehaviour
     public LayerMask groundLayer; //ジャンプできる地面のレイヤー
     public LayerMask CharacterLayer; //ジャンプできる地面のレイヤー
 
-    public BoxCollider2D body;
     public BoxCollider2D up;
     public BoxCollider2D down;
 
     private bool goJump = false; //連続でジャンプしてしまう事を防ぐフラグ
     
     public static int gameState = default;
-
-    public string nextScene = default;
 
     //アニメーション対応
     Animator animator;
@@ -41,8 +38,8 @@ public class PlayerManager : MonoBehaviour
     public string jumpAnime = "PlayerJump";
     //public string goalAnime = "PlayerGoal";
     //public string deadAnime = "PlayerOver";
-    public string nowAnime = "";
-    public string oldAnime = "";
+    private string nowAnime = "";
+    private string oldAnime = "";
 
     /// ----------------------------------------------------------------------
     private bool rightMove;
@@ -96,7 +93,7 @@ public class PlayerManager : MonoBehaviour
         }
 
         //入力を取得する
-        axisH = Input.GetAxisRaw("Horizontal");
+        //axisH = Input.GetAxisRaw("Horizontal");
 
         //Jump入力を記録する
         if (Input.GetButtonDown("Jump"))
@@ -105,10 +102,7 @@ public class PlayerManager : MonoBehaviour
             goJump = true;
         }
 
-        //ChangeMass();
         
-        
-        /*
         /// ----------------------------------------------------------------------
         //スマホ用はUpdate内の入力の取得を消す必要がある
         if (rightMove) axisH = 1;
@@ -116,7 +110,7 @@ public class PlayerManager : MonoBehaviour
         if (!rightMove && !leftMove) axisH = 0;
         if (rightMove && leftMove) axisH = 0;
         /// ----------------------------------------------------------------------
-        */
+        
     }
 
     private void FixedUpdate()
@@ -181,7 +175,6 @@ public class PlayerManager : MonoBehaviour
                 rbody.velocity = new Vector2(0, 0);
                 rbody.AddForce(jumpPw, ForceMode2D.Impulse);
                 
-                SoundManager.instance.PlaySE(0);
             }
         }
         goJump = false;
@@ -267,29 +260,18 @@ public class PlayerManager : MonoBehaviour
         Camera.main.transform.DOMoveX(Camera.main.transform.position.x + 22, 0.8f).SetEase(Ease.OutQuad).OnComplete(
             () =>
             {
-                SceneManager.LoadScene(nextScene);
+                int buildNum = SceneManager.GetActiveScene().buildIndex + 1;
+                if (buildNum >= SceneManager.sceneCountInBuildSettings)
+                {
+                    buildNum = 0;
+                }
+                SceneManager.LoadScene(buildNum);
             });
     }
     
     private void GameOver()
     {
-        
         gameState = (int)State.Gameover;
-
         SoundManager.instance.PlaySE(0);
-    }
-
-    private void HideCollider()
-    {
-        body.enabled = false;
-        up.enabled = false;
-        down.enabled = false;
-    }
-
-    private void ShowCollider()
-    {
-        body.enabled = true;
-        up.enabled = true;
-        down.enabled = true;
     }
 }

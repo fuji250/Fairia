@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 public class MoveGround : MonoBehaviour
 {
@@ -103,6 +104,13 @@ public class MoveGround : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void Init()
+    {
+        transform.position = defPos;
+        isCanMove = false;
+
     }
 
     //移動フラグを立てる

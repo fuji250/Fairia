@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using Unity.VisualScripting;
 
 public class SaveData : MonoBehaviour
 {
@@ -10,28 +11,21 @@ public class SaveData : MonoBehaviour
     public class FailedData
     {
         public int failedNum;
-        
-        public List<int> currentRight = new List<int>();
         public List<string> rightLists = new List<string>();
-        public List<int> currentLeft = new List<int>();
-        public List<string> leftLists = new List<string>();
-        public List<int> currentJump = new List<int>();
         public List<string> jumpLists = new List<string>();
+
+        public int clearSta;
     }
 
-    private void Awake()
-    {
-        SaveData.FailedData failedData = new SaveData.FailedData();
-        //SaveData.SavePlayerData(failedData);
-    }
-
+    
+    
     public static void SavePlayerData(FailedData failedData)
     {
         StreamWriter writer;
  
         string jsonstr = JsonUtility.ToJson (failedData);
  
-        writer = new StreamWriter(Application.dataPath + "/savedata.json", false);
+        writer = new StreamWriter(Application.persistentDataPath + "/savedata.json", false);
         writer.Write (jsonstr);
         writer.Flush ();
         writer.Close ();
@@ -39,13 +33,13 @@ public class SaveData : MonoBehaviour
     
     public static FailedData LoadPlayerData()
     {
-        if (!File.Exists(Application.dataPath + "/savedata.json"))
+        if (!File.Exists(Application.persistentDataPath + "/savedata.json"))
         {
             SavePlayerData(new SaveData.FailedData());
         }
         string datastr = "";
         StreamReader reader;
-        reader = new StreamReader (Application.dataPath + "/savedata.json");
+        reader = new StreamReader (Application.persistentDataPath + "/savedata.json");
         datastr = reader.ReadToEnd ();
         reader.Close ();
  

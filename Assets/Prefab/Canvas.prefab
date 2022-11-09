@@ -203,7 +203,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
-  m_RaycastPadding: {x: -10, y: -10, z: -10, w: -10}
+  m_RaycastPadding: {x: -10, y: -15, z: -12, w: -13}
   m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -231,7 +231,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Delegates:
-  - eventID: 2
+  - eventID: 0
     callback:
       m_PersistentCalls:
         m_Calls:
@@ -247,7 +247,7 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 1
           m_CallState: 2
-  - eventID: 3
+  - eventID: 1
     callback:
       m_PersistentCalls:
         m_Calls:
@@ -290,7 +290,7 @@ RectTransform:
   m_GameObject: {fileID: 4541867277429006436}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.2324074, y: 0.2324074, z: 0.2324074}
+  m_LocalScale: {x: 0.26052365, y: 0.26052365, z: 0.26052365}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4541867278140028050}
@@ -304,7 +304,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1920.0001, y: 1080.0001}
+  m_SizeDelta: {x: 1920, y: 1842.4431}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4541867277429006439
 CanvasRenderer:
@@ -422,7 +422,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   failedPanel: {fileID: 5897489582400036452}
   failedText: {fileID: 5897489581596030937}
-  volume: {fileID: 0}
+  volume: {fileID: 3615738179226314219, guid: 11da80ec4ed2b08418bac36e265a3cbd, type: 3}
 --- !u!114 &6867432869674063498
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -825,7 +825,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -406.74432}
+  m_AnchoredPosition: {x: 0, y: -406.7444}
   m_SizeDelta: {x: -600, y: -1495.05}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4541867278140028052
@@ -1036,7 +1036,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 50
 --- !u!114 &5106560795467589153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1054,18 +1054,6 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: SoundManager, Assembly-CSharp
-          m_MethodName: SwitchingSound
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
         - m_Target: {fileID: 4541867277786459075}
           m_TargetAssemblyTypeName: PauseManager, Assembly-CSharp
           m_MethodName: ChangeSoundButtonImage
@@ -1138,7 +1126,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.11372549}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1246,7 +1234,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
-  m_RaycastPadding: {x: -10, y: -10, z: -10, w: -10}
+  m_RaycastPadding: {x: -15, y: -15, z: -10, w: -13}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -1274,7 +1262,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Delegates:
-  - eventID: 2
+  - eventID: 0
     callback:
       m_PersistentCalls:
         m_Calls:
@@ -1290,7 +1278,7 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 1
           m_CallState: 2
-  - eventID: 3
+  - eventID: 1
     callback:
       m_PersistentCalls:
         m_Calls:
@@ -1669,7 +1657,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 10
-  m_Sprite: {fileID: 21300000, guid: 14231f81feaec034cae0eb354796ff24, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b8d8a9945661a0a4ab31fa9eca187153, type: 3}
   m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FlipX: 0
   m_FlipY: 0

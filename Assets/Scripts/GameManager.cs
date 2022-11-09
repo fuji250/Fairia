@@ -66,8 +66,6 @@ public class GameManager : MonoBehaviour
         failedData.failedNum  = SaveData.LoadPlayerData().failedNum +1;
         SaveData.SavePlayerData(failedData);
         
-        Debug.Log(failedData.failedNum);
-        
 
         //ƒpƒlƒ‹‚ðˆê•b‚¾‚¯•\Ž¦
         failedText.text = failedData.failedNum.ToString();
@@ -85,6 +83,7 @@ public class GameManager : MonoBehaviour
     
     public void Reset()
     {
+        SoundManager.instance.PlaySE(0);
         PlayerManager.gameState = (int)PlayerManager.State.Gameover;
         Invoke(nameof(Load),1f);
     }
@@ -92,6 +91,6 @@ public class GameManager : MonoBehaviour
     private void Load()
     {
         //HidePanel();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

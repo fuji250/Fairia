@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [ExecuteInEditMode()]
@@ -20,17 +21,38 @@ public class RectScalerWithViewport : MonoBehaviour
 
     private const float kLogBase = 2;
 
+    private Canvas canvas;
+    private int x = 0;
+
     private void Awake()
     {
         if(refRect == default){
             refRect = GetComponent<RectTransform>();
         }
         UpdateRect();
+        canvas = this.GetComponentInParent<Canvas>();
+
+
     }
 
+    void Start()
+    {
+
+    }
     private void Update()
     {
         UpdateRectWithCheck();
+
+        if (!canvas.isActiveAndEnabled)
+        {
+            if (x >= 0 )
+            {
+                canvas.enabled = true;
+            }
+
+            x++;
+        }
+        
     }
 
 #if UNITY_EDITOR

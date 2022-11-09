@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 
@@ -33,11 +34,9 @@ public class Recorder : MonoBehaviour
     public List<Rigidbody2D> rbodys = default;
 
     public List<int> currentRight = new List<int>();
-    public List<int> currentLeft = new List<int>();
     public List<int> currentJump = new List<int>();
 
     private readonly List<List<int>> rightLists = new List<List<int>>();
-    private readonly List<List<int>> leftLists = new List<List<int>>();
     private readonly List<List<int>> jumpLists = new List<List<int>>();
 
     //スタート地点
@@ -79,19 +78,18 @@ public class Recorder : MonoBehaviour
         //記録
         if (isRecord && PlayerManager.gameState == (int)PlayerManager.State.Playing)
         {
+            /*
             if (SceneManager.GetActiveScene().name == "Stage3")
             {
                 isRecord = false;
                 ChangeMoveData();
             }
+            */
         }
         else if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.Gameover)
         {
             Invoke(nameof(Retry), 1f);
         }
-
-        
-
         previousGameState = PlayerManager.gameState;
     }
 
@@ -125,15 +123,11 @@ public class Recorder : MonoBehaviour
     //PlayerManagerで呼びだし
     public  void RecordMove(int axisH)
     {
-        if ((SceneManager.GetActiveScene().name == "Stage3"))
-        {
-            return;
-        }
-        if (axisH == 1) currentRight.Add(1);
+
+        //2右、1左、0止
+        if (axisH == 1)currentRight.Add(2);
+        else if (axisH == -1)currentRight.Add(1);
         else currentRight.Add(0);
-        
-        if (axisH == -1) currentLeft.Add(1);
-        else currentLeft.Add(0);
     }
     
     //PlayerManagerで呼びだし
@@ -156,21 +150,17 @@ public class Recorder : MonoBehaviour
         //最後に動き続けてしまうのを防止
         currentRight.Add(0);
         rightLists.Add(currentRight);
-        currentLeft.Add(0);
-        leftLists.Add(currentLeft);
         currentJump.Add(0);
         jumpLists.Add(currentJump);
         
         //ゴーストの移動保存
         SaveData.FailedData failedData = SaveData.LoadPlayerData();
         failedData.rightLists.Add(String.Join("", this.currentRight));
-        failedData.leftLists.Add(String.Join("", this.currentLeft));
         failedData.jumpLists.Add(String.Join("", this.currentJump));
         SaveData.SavePlayerData(failedData);
 
         //次のゴースト用のリスト追加
         currentRight = new List<int>();
-        currentLeft = new List<int>();
         currentJump = new List<int>();
 
         isRecord = false;
@@ -216,21 +206,19 @@ public class Recorder : MonoBehaviour
             if (onGround) nowAnimes[ghostNum] = moveAnime;
             else　nowAnimes[ghostNum] = jumpAnime;
             
-            //右のみ押されていた場合、右移動
-            if (rightLists[ghostNum][ghostFrameNum]%2 == 1 && leftLists[ghostNum][ghostFrameNum]%2 == 0)
+            //2右、1左、0止
+            int moveDir = rightLists[ghostNum][ghostFrameNum];
+            if (moveDir%48 == 2)
             {
                 rbodys[ghostNum].velocity = new Vector2(speed * 1, rbodys[ghostNum].velocity.y);
                 ghosts[ghostNum].transform.localScale = new Vector2(1, 1);
-            }
-            else if (leftLists[ghostNum][ghostFrameNum]%2 == 1)
+            }else if (moveDir % 48 == 1)
             {
                 rbodys[ghostNum].velocity = new Vector2(speed * -1, rbodys[ghostNum].velocity.y);
                 ghosts[ghostNum].transform.localScale = new Vector2(-1, 1);
-            }
-            else
+            }else
             {
                 rbodys[ghostNum].velocity = new Vector2(0, rbodys[ghostNum].velocity.y);
-                
                 if (onGround) nowAnimes[ghostNum] = idleAnime;
             }
             
@@ -304,29 +292,48 @@ public class Recorder : MonoBehaviour
         {
             //初期化
             this.currentRight = new List<int>();
-            this.currentLeft = new List<int>();
             this.currentJump = new List<int>();
             
             //数字の文字列をリストに収納(一人分)
             for (int j = 0; j < failedData.rightLists[i].Length; j++)
             {
                 int x = failedData.rightLists[i][j];
-                Debug.Log(x);
-                //this.rights.Add(x);
                 this.currentRight.Add(failedData.rightLists[i][j]);
-                this.currentLeft.Add(failedData.leftLists[i][j]);
                 this.currentJump.Add(failedData.jumpLists[i][j]);
                 
                 Debug.Log(failedData.rightLists[i][j]);
             }
 
             this.rightLists.Add(currentRight);
-            this.leftLists.Add(currentLeft);
             this.jumpLists.Add(currentJump);
             
             MakeGhost();
+
         }
         
+        
         isPlayback = true;
+        
+        //IEnumerable<("0022",2)>("asv");
+    }
+    
+    static IEnumerable<(char, int)> RLE(string s)
+    {
+        var count = 1;
+        var prev = s[0];
+        for (int i = 1; i < s.Length; i++)
+        {
+            if (prev == s[i])
+            {
+                count++;
+            }
+            else
+            {
+                yield return (prev, count);
+                count = 1;
+            }
+            prev = s[i];
+        }
+        yield return (prev, count);
     }
 }

@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class PauseManager : MonoBehaviour
 {
+    private SoundManager soundManager;
     private GameObject pausePanel;
     public Image soundImage;
     public Sprite SoundOnSpr; 
@@ -15,10 +16,11 @@ public class PauseManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        soundManager = GameObject.Find("SoundManager").GetComponent<SoundManager>();
         pausePanel = this.gameObject;
         pausePanel.SetActive(false);
 
-        ChangeSoundButtonImage();
+        //ChangeSoundButtonImage();
     }
 
     public void ShowPausePanel()
@@ -37,6 +39,7 @@ public class PauseManager : MonoBehaviour
 
     public void ChangeSoundButtonImage()
     {
+        soundManager.SwitchingSound();
         if (PlayerPrefs.GetInt("soundVolume",0) == 1)
         {
             soundImage.sprite = SoundOnSpr;
@@ -49,7 +52,6 @@ public class PauseManager : MonoBehaviour
 
     public void ToTitle()
     {
-        SoundManager.instance.PlaySE(0);
         Time.timeScale = 1;
         SceneManager.LoadScene("Title");
     }

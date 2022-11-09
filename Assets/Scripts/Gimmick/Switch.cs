@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,21 +6,34 @@ using UnityEngine;
 public class Switch : MonoBehaviour
 {
     public GameObject targetMoveBlock;
+    private SpriteRenderer spriteRenderer;
     public Sprite imageOn;
     public Sprite imageOff;
     private bool on = false;//スイッチの状態(true:押されている　false：押されていない)
 
+    private MoveGround moveGround;
+    
+    private int previousGameState;
+
+
     // Start is called before the first frame update
     void Start()
     {
-        if (on)
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        moveGround = targetMoveBlock.GetComponent<MoveGround>();
+    }
+
+    private void Update()
+    {
+        if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.Gameover)
         {
-            GetComponent<SpriteRenderer>().sprite = imageOn;
+            spriteRenderer.sprite = imageOff;
+            on = false;
+            moveGround.Init();
+
         }
-        else
-        {
-            GetComponent<SpriteRenderer>().sprite = imageOff;
-        }
+        //ゲーム状態を記録する
+        previousGameState = PlayerManager.gameState;
     }
 
     //接触開始
@@ -31,9 +45,8 @@ public class Switch : MonoBehaviour
             if (!on)
             {
                 on = true;
-                GetComponent<SpriteRenderer>().sprite = imageOn;
-                MoveGround movBlock = targetMoveBlock.GetComponent<MoveGround>();
-                movBlock.Move();
+                spriteRenderer.sprite = imageOn;
+                moveGround.Move();
             }
         }
     }

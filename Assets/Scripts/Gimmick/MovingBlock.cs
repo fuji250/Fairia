@@ -4,41 +4,79 @@ using UnityEngine;
 
 public class MovingBlock : MonoBehaviour
 {
-    public GameObject MovingBlock1;
+    private GameObject MovingBlock1;
     bool isTrigger1 = false;
 
     public float speed;
-    public float height;
+    public float maxHeight;
     public float checkHeight;
     float evHeight1;
+    public bool IsUpper;
+    
+    private int previousGameState;
+    private Vector3 firstTransform;
 
     void Start()
     {
-        evHeight1 = MovingBlock1.transform.position.y;
+        MovingBlock1 = this.gameObject;
+        firstTransform = MovingBlock1.transform.position;
     }
 
     void FixedUpdate()
     {
-        evHeight1 = MovingBlock1.transform.position.y;
-        if (isTrigger1 == false && evHeight1 <= height)
+        if (previousGameState !=  PlayerManager.gameState && PlayerManager.gameState == (int)PlayerManager.State.Playing)
         {
-            //下に動かす
-            MovingBlock1.transform.Translate(new Vector3(0, 1 * speed, 0));
+            MovingBlock1.transform.position = firstTransform;
         }
+        //ゲーム状態を記録する
+        previousGameState = PlayerManager.gameState;
+        
+        evHeight1 = MovingBlock1.transform.position.y;
+
+        if (IsUpper)
+        {
+            if (isTrigger1 == false && evHeight1 >= maxHeight)
+            {
+                //下に動かす
+                MovingBlock1.transform.Translate(new Vector3(0, -1 * speed, 0));
+            }
+        }
+        else
+        {
+            if (isTrigger1 == false && evHeight1 <= maxHeight)
+            {
+                //下に動かす
+                MovingBlock1.transform.Translate(new Vector3(0, 1 * speed, 0));
+            }
+        }
+        
     }
     
     //接触開始
     void OnTriggerStay2D(Collider2D col)
     {
-        if (evHeight1 >= checkHeight)
+        isTrigger1 = true;
+
+        if (IsUpper)
         {
-            isTrigger1 = true;
             //動きを止める
             if (col.gameObject.CompareTag("Player"))
             {
                 MovingBlock1.transform.Translate(new Vector3(0, 0, 0));
             }
         }
+        else
+        {
+            if (evHeight1 <= checkHeight)
+            {
+                //動きを止める
+                if (col.gameObject.CompareTag("Player"))
+                {
+                    MovingBlock1.transform.Translate(new Vector3(0, 0, 0));
+                }
+            }
+        }
+        
     }
     
     void OnTriggerExit2D(Collider2D col)

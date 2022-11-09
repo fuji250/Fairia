@@ -37,6 +37,7 @@ public class SoundManager : MonoBehaviour
         SetupSoundVolume();
     }
     
+    
     public void PlayBGM(string sceneName)
     {
         audioSourceBGM.Stop();
@@ -66,7 +67,7 @@ public class SoundManager : MonoBehaviour
 
     public void SetupSoundVolume()
     {
-        if (PlayerPrefs.GetInt("soundVolume", 0) == 1)
+        if (PlayerPrefs.GetInt("soundVolume", 1) == 1)
         {
             audioSourceBGM.volume = bgmVolume;
             audioSourceSE.volume = seVolume;

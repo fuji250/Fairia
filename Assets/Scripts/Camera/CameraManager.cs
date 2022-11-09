@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class CameraManager : MonoBehaviour
 {
     public GameObject wallObject;
@@ -17,6 +18,8 @@ public class CameraManager : MonoBehaviour
     {
         if (PlayerManager.gameState == (int)PlayerManager.State.Playing)
         {
+            wallObject.SetActive(true);
+
             return;
         }
         wallObject.SetActive(false);
